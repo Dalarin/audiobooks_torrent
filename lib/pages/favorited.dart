@@ -1,5 +1,7 @@
 // ignore_for_file: sized_box_for_whitespace, must_be_immutable
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rutracker_app/elements/book.dart';
@@ -26,13 +28,19 @@ class _FavoritedState extends State<Favorited> {
 
   bool isLoading = true;
   bool isFavorited = true;
-  List<int> filter = [];
   int sortType = 0;
+  String sortOrder = "";
   Map<int, String> sortMap = {
     0: 'По умолчанию',
     1: 'По автору',
     2: 'По названию',
     3: 'По исполнителю'
+  };
+  Map<int, String> sortSQL = {
+    0: "(SELECT null)",
+    1: BookFields.author,
+    2: BookFields.title,
+    3: BookFields.executor
   };
 
   @override
@@ -58,7 +66,9 @@ class _FavoritedState extends State<Favorited> {
   }
 
   void loadData() async {
+    sortOrder = (await constants.getSortOrder()).toString();
     sortType = await constants.getSort().whenComplete(() => setState(() {}));
+    log('Sort order: $sortOrder, sortType: $sortType');
   }
 
   @override
@@ -425,22 +435,40 @@ class _FavoritedState extends State<Favorited> {
   }
 
   Widget listTile(int value, String text) {
-    return ListTile(
-      title: Text(
-        text,
-        style: TextStyle(fontFamily: constants.fontFamily),
-      ),
-      leading: Radio<int>(
-        value: value,
-        groupValue: sortType,
-        onChanged: (int? value) {
-          setState(() {
-            sortType = value!;
-            constants.saveSort(sortType);
-            Navigator.pop(context);
-          });
-        },
-      ),
+    return StatefulBuilder(
+      builder: (context, changeState) {
+        return ListTile(
+          trailing: value == 0
+              ? InkWell(
+                  onTap: () => changeState(() {
+                    setState(() {
+                      sortOrder = sortOrder == "desc" ? "asc" : "desc";
+                      constants.saveSortOrder(sortOrder);
+                    });
+                  }),
+                  child: Icon(Icons.sort_by_alpha,
+                      color: sortOrder == "asc"
+                          ? Theme.of(context).toggleableActiveColor
+                          : Theme.of(context).disabledColor),
+                )
+              : null,
+          title: Text(
+            text,
+            style: TextStyle(fontFamily: constants.fontFamily),
+          ),
+          leading: Radio<int>(
+            value: value,
+            groupValue: sortType,
+            onChanged: (int? value) {
+              setState(() {
+                sortType = value!;
+                constants.saveSort(sortType);
+                Navigator.pop(context);
+              });
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -470,8 +498,10 @@ class _FavoritedState extends State<Favorited> {
                             fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 5),
-                      Text(sortMap[sortType].toString(),
-                          style: TextStyle(fontFamily: constants.fontFamily))
+                      Text(
+                        sortMap[sortType].toString(),
+                        style: TextStyle(fontFamily: constants.fontFamily),
+                      )
                     ],
                   ),
                 ),
@@ -498,11 +528,18 @@ class _FavoritedState extends State<Favorited> {
           ),
         ),
         FutureBuilder(
-          future: DBHelper.instance.readFavoritedBooks(),
+          future: DBHelper.instance.readFavoritedBooks(
+              orderBy: sortSQL[sortType]!,
+              orderDirection: sortOrder,
+              limit: 100),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               List<Book> favoritedBooks = snapshot.data as List<Book>;
-              favoritedBooks = sortBooks(favoritedBooks);
+              favoritedBooks.forEach((element) =>
+                  precacheImage(NetworkImage(element.image), context,
+                      onError: (Object object, StackTrace? trace) {
+                    log('Cant precache ${element.image}');
+                  }));
               if (favoritedBooks.isNotEmpty) {
                 return ListView.builder(
                   physics: const ScrollPhysics(),
@@ -527,31 +564,6 @@ class _FavoritedState extends State<Favorited> {
       ],
     );
   }
-
-  List<Book> sortBooks(List<Book> books) {
-    switch (sortType) {
-      case 1:
-        books.sort((a, b) => a.author
-            .toLowerCase()
-            .trim()
-            .compareTo(b.author.toLowerCase().trim()));
-        break;
-      case 2:
-        books.sort((a, b) => a.title
-            .toLowerCase()
-            .trim()
-            .compareTo(b.title.toLowerCase().trim()));
-        break;
-      case 3:
-        books.sort((a, b) => a.executor
-            .toLowerCase()
-            .trim()
-            .compareTo(b.executor.toLowerCase().trim()));
-        break;
-    }
-    return books;
-  }
-
 
   Widget emptyContainer(String text) {
     return Padding(

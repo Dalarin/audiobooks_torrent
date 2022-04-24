@@ -54,4 +54,14 @@ class constants {
     }
     return false;
   }
+
+  static Future<Object> getSortOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString("sortOrder") ?? "asc";
+  }
+
+  static void saveSortOrder(String sortOrder) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("sortOrder", sortOrder);
+  }
 }

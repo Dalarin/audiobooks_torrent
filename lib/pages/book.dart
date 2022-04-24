@@ -1,5 +1,7 @@
 // ignore_for_file: must_be_immutable, sized_box_for_whitespace, avoid_print
 
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -13,6 +15,7 @@ import 'package:rutracker_app/rutracker/rutracker.dart';
 class BookPage extends StatefulWidget {
   Book torrent;
   RutrackerApi api;
+
   BookPage(this.api, {Key? key, required this.torrent}) : super(key: key);
 
   @override
@@ -22,6 +25,7 @@ class BookPage extends StatefulWidget {
 class _BookPageState extends State<BookPage> {
   final List<TextEditingController> _controller =
       List.generate(2, (i) => TextEditingController());
+
   @override
   void initState() {
     init();
@@ -124,11 +128,15 @@ class _BookPageState extends State<BookPage> {
   Widget networkImage(String url) {
     return Image.network(
       url,
-      loadingBuilder: (context, child, loadingProgress) =>
-          (loadingProgress == null)
-              ? child
-              : const Center(child: CircularProgressIndicator()),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) {
+          return child;
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
       errorBuilder: (context, error, stackTrace) {
+        log('Cant load image $url');
         return errorImage();
       },
       fit: BoxFit.cover,
@@ -154,6 +162,7 @@ class _BookPageState extends State<BookPage> {
       placeholder: (context, url) =>
           const Center(child: CircularProgressIndicator()),
       errorWidget: (context, exception, stackTrace) {
+        log('Cant load cachedImage $url');
         return errorImage();
       },
       fit: BoxFit.cover,

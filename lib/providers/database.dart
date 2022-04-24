@@ -118,10 +118,13 @@ class DBHelper {
     db.insert(list_tablename, list.toMap());
   }
 
-  Future<List<Book>> readFavoritedBooks() async {
+  Future<List<Book>> readFavoritedBooks(
+      {required String orderBy,
+      required String orderDirection,
+      required int limit}) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        "SELECT * FROM $book_tableName WHERE ${BookFields.isFavorited} = 1");
+        "SELECT * FROM $book_tableName WHERE ${BookFields.isFavorited} = 1 ORDER BY $orderBy $orderDirection LIMIT $limit");
     return result.map((json) => Book.fromMap(json)).toList();
   }
 

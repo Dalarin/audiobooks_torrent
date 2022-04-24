@@ -12,6 +12,16 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,36 +56,32 @@ class _ProfileState extends State<Profile> {
             Material(
               elevation: 5.0,
               borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-              child: InkWell(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  height: 80,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Темная тема',
-                          style: TextStyle(
-                              fontFamily: constants.fontFamily,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Switch(
-                          value:
-                              Theme.of(context).brightness == Brightness.dark,
-                          onChanged: (value) {
-                            setState(() {
-                              constants.saveTheme(
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark);
-                              EasyDynamicTheme.of(context).changeTheme();
-                            });
-                          },
-                        ),
-                      ]),
-                ),
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                height: 80,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Темная тема',
+                        style: TextStyle(
+                            fontFamily: constants.fontFamily,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Switch(
+                        value: Theme.of(context).brightness == Brightness.dark,
+                        onChanged: (value) {
+                          setState(() {
+                            constants.saveTheme(Theme.of(context).brightness ==
+                                Brightness.dark);
+                            EasyDynamicTheme.of(context).changeTheme();
+                          });
+                        },
+                      ),
+                    ]),
               ),
             ),
           ],

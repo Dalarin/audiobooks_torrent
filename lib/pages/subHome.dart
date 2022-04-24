@@ -165,7 +165,8 @@ class _subHomeState extends State<subHome> {
 
   Widget listViewFavorited() {
     return FutureBuilder(
-      future: DBHelper.instance.readFavoritedBooks(),
+      future: DBHelper.instance.readFavoritedBooks(
+          orderBy: BookFields.id, orderDirection: "asc", limit: 3),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           List<Book> downloadedBooks = snapshot.data as List<Book>;
