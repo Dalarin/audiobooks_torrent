@@ -31,11 +31,19 @@ class RutrackerApi {
     return parser.parseQuery(document);
   }
 
-  Future<Book> openBook(Torrent link) async {
-    http.Response response = await pageProvider.page(link.link);
+// получить книгу
+  Future<Book> openBook(String link) async {
+    http.Response response = await pageProvider.page(link);
     var body = cp1251.decodeCp1251(response.body);
     Document document = parse(body);
     return parser.parseBook(document, link);
+  }
+
+  Future<List<Book>> getSimilarBooks(String link, RutrackerApi api) async {
+    http.Response response = await pageProvider.page(link);
+    var body = cp1251.decodeCp1251(response.body);
+    Document document = parse(body);
+    return parser.getSimilarBooks(document, api);
   }
 
   Future<bool> restoreCookies(String cookies) async {

@@ -12,15 +12,10 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -57,31 +52,78 @@ class _ProfileState extends State<Profile> {
               elevation: 5.0,
               borderRadius: const BorderRadius.all(Radius.circular(20.0)),
               child: Container(
+                height: MediaQuery.of(context).size.height * 0.2,
                 width: MediaQuery.of(context).size.width,
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                height: 80,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Темная тема',
-                        style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Switch(
-                        value: Theme.of(context).brightness == Brightness.dark,
-                        onChanged: (value) {
-                          setState(() {
-                            constants.saveTheme(Theme.of(context).brightness ==
-                                Brightness.dark);
-                            EasyDynamicTheme.of(context).changeTheme();
-                          });
-                        },
-                      ),
-                    ]),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Темная тема',
+                          style: TextStyle(
+                              fontFamily: constants.fontFamily,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Switch(
+                          value:
+                              Theme.of(context).brightness == Brightness.dark,
+                          onChanged: (value) {
+                            setState(() {
+                              bool isDarkTheme = Theme.of(context).brightness ==
+                                  Brightness.dark;
+                              constants.saveTheme(isDarkTheme);
+                              EasyDynamicTheme.of(context).changeTheme();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Показывать привязанные книги',
+                              style: TextStyle(
+                                  fontFamily: constants.fontFamily,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            Switch(
+                              value: constants.similarBooks,
+                              onChanged: (value) {
+                                setState(() {
+                                  constants.similarBooks =
+                                      !constants.similarBooks;
+                                  constants.saveSimilarBooks();
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: Text(
+                                'Экспериментальная функция. Включать на свой страх и риск',
+                                style: TextStyle(
+                                    fontFamily: constants.fontFamily,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

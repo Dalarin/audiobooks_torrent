@@ -4,23 +4,22 @@ import 'package:rutracker_app/rutracker/models/list_object.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class constants {
+  static bool similarBooks = false;
   static String fontFamily = "Gotham";
-  static String bookCover =
-      "https://timvandevall.com/wp-content/uploads/2014/01/Book-Cover-Template.jpg";
+
+  static Future<void> saveSimilarBooks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("similarBooks", similarBooks ? "1" : "0");
+  }
+
+  static Future<void> getSimilarBooks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    similarBooks = prefs.getString("similarBooks") == '1' ? true : false;
+  }
 
   static Future<void> saveCookies(String cookies) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("cookies", cookies);
-  }
-
-  static Future<void> saveRecentlyListened(String id) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("recentlyListened", id);
-  }
-
-  static Future<String> getRecentlyListened() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString("recentlyListened") ?? "";
   }
 
   static Future<void> saveSort(int sortType) async {

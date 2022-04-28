@@ -189,7 +189,7 @@ class _SearchState extends State<Search> {
   }
 
   _loadData(Torrent torrent) async {
-    return await widget.api.openBook(torrent);
+    return await widget.api.openBook(torrent.link);
   }
 
   Widget book(Torrent torrent) {

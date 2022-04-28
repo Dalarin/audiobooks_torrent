@@ -4,6 +4,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/torrent.dart';
+import 'package:rutracker_app/rutracker/rutracker.dart';
 
 class Parser {
   int findQuery(String query, List<String> list) {
@@ -49,7 +50,7 @@ class Parser {
     return torrents;
   }
 
- List<String> _getTitle(String text) => text.split("Год");
+  List<String> _getTitle(String text) => text.split("Год");
 
   String _getRelease(List<String> list) {
     try {
@@ -59,7 +60,7 @@ class Parser {
     }
   }
 
- String _getAuthor(List<String> list) {
+  String _getAuthor(List<String> list) {
     try {
       return contains(list, "Имя")
           ? list[findQuery("Имя автора", list)].split(":")[1].trim() +
@@ -79,7 +80,7 @@ class Parser {
     }
   }
 
- String _getBitrate(List<String> list) {
+  String _getBitrate(List<String> list) {
     try {
       return list[findQuery("Битрейт", list)].trim().split(":")[1].trim();
     } catch (E) {
@@ -151,7 +152,50 @@ class Parser {
     }
   }
 
-  Book parseBook(Document document, Torrent torrent) {
+  List<String> similarBooks(var outerHtml) {
+    List<String> linkedBooks = [];
+    for (int i = 0; i < outerHtml.length; i++) {
+      try {
+        var outerHtmls = outerHtml[i].outerHtml.toString();
+        var substring = outerHtmls.substring(
+            outerHtmls.indexOf("viewtopic.php?t="),
+            outerHtmls.indexOf('class="postLink"'));
+        linkedBooks.add(substring.substring(
+            substring.indexOf("=") + 1, substring.indexOf('"')));
+      } catch (_) {}
+    }
+    return linkedBooks;
+  }
+
+  String _getSize(Document document) {
+    try {
+      var size = document
+          .getElementsByClassName("post_wrap")[0]
+          .getElementsByClassName("row1")[3]
+          .text;
+      size = size.substring(size.indexOf(":") + 1, size.indexOf("С")).trim();
+      return size;
+    } catch (e) {
+      return "Не найдено";
+    }
+  }
+
+  Future<List<Book>> getSimilarBooks(
+      Document document, RutrackerApi api) async {
+    List<String> similarBook = similarBooks(document
+        .getElementsByClassName("post_body")[0]
+        .getElementsByTagName('a'));
+    similarBook.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    similarBook = similarBook.sublist(0, 5);
+    List<Book> books = [];
+    for (int i = 0; i < similarBook.length; i++) {
+      books.add(await api.openBook(similarBook[i]));
+    }
+    return books;
+  }
+
+  Book parseBook(Document document, String link) {
+    _getSize(document);
     var doc =
         document.getElementsByClassName("post_wrap")[0].children[0].text.trim();
     var docs = _getTitle(doc)[1].toString().split("\n");
@@ -162,8 +206,8 @@ class Parser {
     return Book(
         series: _getSeries(docs),
         bookNumber: _getBookNumber(docs),
-        size: torrent.size,
-        id: int.parse(torrent.link),
+        size: _getSize(document),
+        id: int.parse(link),
         genre: _getGenre(docs),
         title: _getTitle(doc)[0].toString().replaceAll("\n", ""),
         releaseYear: _getRelease(docs),

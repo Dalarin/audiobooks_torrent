@@ -279,7 +279,6 @@ class _BookElementState extends State<BookElement> {
                         book.listeningInfo['index'] = '5',
                         book.listeningInfo['maxIndex'] = '5'
                       };
-
                 DBHelper.instance
                     .updateBook(book)
                     .whenComplete(() => setState(() {}));
@@ -318,8 +317,10 @@ class _BookElementState extends State<BookElement> {
                 children: [
                   Icon(book.isDownloaded ? Icons.delete : Icons.download),
                   const SizedBox(width: 15),
-                  Text(book.isDownloaded ? 'Удалить книгу' : 'Скачать книгу',
-                      style: TextStyle(fontFamily: constants.fontFamily)),
+                  Text(
+                    book.isDownloaded ? 'Удалить книгу' : 'Скачать книгу',
+                    style: TextStyle(fontFamily: constants.fontFamily),
+                  ),
                 ],
               ),
             ),

@@ -9,6 +9,8 @@ import 'package:sqflite/sqflite.dart';
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
   static Database? _database;
+  final textType = 'TEXT NOT NULL';
+  final integerType = 'INTEGER NOT NULL';
 
   DBHelper._init();
 
@@ -26,9 +28,16 @@ class DBHelper {
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (newVersion > oldVersion) {
-      const textType = 'TEXT NOT NULL';
-      const integerType = 'INTEGER NOT NULL';
+    switch (newVersion) {
+      case 2:
+        _createListObjectTable(db);
+        _createListTable(db);
+        break;
+    }
+  }
+
+  void _createListTable(Database db) async {
+    try {
       await db.execute('''
     CREATE TABLE IF NOT EXISTS $list_tablename(
       ${ListFields.id} $integerType PRIMARY KEY AUTOINCREMENT,
@@ -37,6 +46,13 @@ class DBHelper {
       ${ListFields.description} $textType
     )
     ''');
+    } catch (_) {
+      log("Cant create table $list_tablename");
+    }
+  }
+
+  void _createListObjectTable(Database db) async {
+    try {
       await db.execute('''
     CREATE TABLE IF NOT EXISTS $object_tablename(
       ${ListObjectFields.idBook} $integerType,
@@ -45,12 +61,12 @@ class DBHelper {
       FOREIGN KEY(${ListObjectFields.idList}) REFERENCES $list_tablename(${ListFields.id})
     )     
     ''');
+    } catch (_) {
+      log('Cant create table $object_tablename');
     }
   }
 
-  Future _createDB(Database db, int version) async {
-    const textType = 'TEXT NOT NULL';
-    const integerType = 'INTEGER NOT NULL';
+  void _createBookTable(Database db) async {
     try {
       await db.execute('''
     CREATE TABLE $book_tableName(
@@ -72,22 +88,16 @@ class DBHelper {
       ${BookFields.listeningInfo} $textType
     )
     ''');
-      await db.execute('''
-    CREATE TABLE IF NOT EXISTS $list_tablename(
-      ${ListFields.id} $integerType PRIMARY KEY AUTOINCREMENT,
-      ${ListFields.name} $textType,
-      ${ListFields.cover} $textType,
-      ${ListFields.description} $textType
-    )
-    ''');
-      await db.execute('''
-    CREATE TABLE IF NOT EXISTS $object_tablename(
-      ${ListObjectFields.idBook} $integerType,
-      ${ListObjectFields.idList} $integerType,
-      FOREIGN KEY(${ListObjectFields.idBook}) REFERENCES $book_tableName(${BookFields.id}),
-      FOREIGN KEY(${ListObjectFields.idList}) REFERENCES $list_tablename(${ListFields.id})
-    )     
-    ''');
+    } catch (_) {
+      log("Cant create table $book_tableName");
+    }
+  }
+
+  Future _createDB(Database db, int version) async {
+    try {
+      _createBookTable(db);
+      _createListObjectTable(db);
+      _createListObjectTable(db);
       log("Database created");
     } catch (E) {
       log("Database NOT created");

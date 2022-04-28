@@ -33,6 +33,7 @@ void main() async {
   await FlutterDownloader.initialize(debug: false);
   RutrackerApi api = RutrackerApi();
   String cookies = await constants.getCookies();
+  constants.getSimilarBooks();
   var homePage = (await api.restoreCookies(cookies))
       ? bottomNavigationBar(api)
       : Authorization(api);

@@ -230,16 +230,19 @@ class _BookPageState extends State<BookPage> {
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height * 0.67,
           decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    const Color(0xFF2F80ED).withOpacity(0.35),
-                    const Color(0xFFB2FFDA).withOpacity(0.35),
-                  ]),
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(35),
-                  bottomRight: Radius.circular(35))),
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                const Color(0xFF2F80ED).withOpacity(0.35),
+                const Color(0xFFB2FFDA).withOpacity(0.35),
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(35),
+              bottomRight: Radius.circular(35),
+            ),
+          ),
           child: SafeArea(
             child: Center(
               child: Column(
@@ -249,16 +252,19 @@ class _BookPageState extends State<BookPage> {
                   image(book.image),
                   const SizedBox(height: 40),
                   Container(
-                      constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.95),
-                      child: Text(book.title,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                          style: TextStyle(
-                              fontFamily: constants.fontFamily,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20))),
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.95),
+                    child: Text(
+                      book.title,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                      style: TextStyle(
+                          fontFamily: constants.fontFamily,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20),
+                    ),
+                  ),
                   const SizedBox(height: 15),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -289,9 +295,10 @@ class _BookPageState extends State<BookPage> {
                 width: MediaQuery.of(context).size.width * 0.25,
                 height: 20,
                 child: LinearPercentIndicator(
-                    progressColor: const Color(0xFF4A73E7),
-                    percent: (double.parse(book.listeningInfo["index"] ?? '0') /
-                        double.parse(book.listeningInfo["maxIndex"] ?? '0'))),
+                  progressColor: const Color(0xFF4A73E7),
+                  percent: (double.parse(book.listeningInfo["index"] ?? '0') /
+                      double.parse(book.listeningInfo["maxIndex"] ?? '0')),
+                ),
               )
             : Container()
         : Container();
@@ -308,10 +315,12 @@ class _BookPageState extends State<BookPage> {
             children: [
               Column(
                 children: [
-                  Text('Жанр',
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    'Жанр',
+                    style: TextStyle(
+                        fontFamily: constants.fontFamily,
+                        fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 5),
                   Container(
                     constraints: BoxConstraints(
@@ -329,52 +338,131 @@ class _BookPageState extends State<BookPage> {
               ),
               Column(
                 children: [
-                  Text('Исполнитель',
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    'Исполнитель',
+                    style: TextStyle(
+                        fontFamily: constants.fontFamily,
+                        fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 5),
                   Container(
                     constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width * 0.35),
-                    child: Text(book.executor,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: constants.fontFamily)),
+                    child: Text(
+                      book.executor,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontFamily: constants.fontFamily),
+                    ),
                   )
                 ],
               ),
               Column(children: [
-                Text('Аудио',
-                    style: TextStyle(
-                        fontFamily: constants.fontFamily,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  'Аудио',
+                  style: TextStyle(
+                      fontFamily: constants.fontFamily,
+                      fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 5),
-                Text(book.time,
-                    style: TextStyle(fontFamily: constants.fontFamily))
+                Text(
+                  book.time,
+                  style: TextStyle(fontFamily: constants.fontFamily),
+                )
               ])
             ],
           ),
           const SizedBox(height: 25),
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Описание',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: constants.fontFamily))
+            Text(
+              'Описание',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: constants.fontFamily),
+            )
           ]),
           const SizedBox(height: 5),
-          Text(book.description,
-              style: TextStyle(height: 1.5, fontFamily: constants.fontFamily)),
+          Text(
+            book.description,
+            style: TextStyle(height: 1.5, fontFamily: constants.fontFamily),
+          ),
+          const SizedBox(height: 25),
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            Text(
+              'Связанные книги:',
+              textAlign: TextAlign.left,
+              style: TextStyle(height: 1.5, fontFamily: constants.fontFamily),
+            ),
+          ]),
+          linkedBooks(),
           const SizedBox(height: 25),
           widget.torrent.isFavorited || widget.torrent.isDownloaded
               ? Padding(
                   child: userSettings(),
-                  padding: const EdgeInsets.only(bottom: 15))
+                  padding: const EdgeInsets.only(bottom: 15),
+                )
               : Container()
         ],
       ),
     );
+  }
+
+  Widget linkedBooks() {
+    return constants.similarBooks
+        ? FutureBuilder(
+            future:
+                widget.api.getSimilarBooks('${widget.torrent.id}', widget.api),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<Book> similarBooks = snapshot.data as List<Book>;
+                if (similarBooks.isNotEmpty) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * 0.25,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 20),
+                        itemCount: similarBooks.length,
+                        itemBuilder: (context, index) {
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookPage(widget.api,
+                                      torrent: similarBooks[index]),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.4,
+                              height: MediaQuery.of(context).size.height * 0.32,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18.0),
+                                child: image(similarBooks[index].image),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                } else {
+                  return Text(
+                    'Связанные книги отсутствуют',
+                    style: TextStyle(fontFamily: constants.fontFamily),
+                  );
+                }
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          )
+        : Container();
   }
 
   Widget userSettings() {
@@ -385,10 +473,11 @@ class _BookPageState extends State<BookPage> {
         child: Row(children: [
           const Icon(Icons.settings),
           const SizedBox(width: 15),
-          Text('Пользовательские настройки',
-              style: TextStyle(
-                  fontFamily: constants.fontFamily,
-                  fontWeight: FontWeight.bold))
+          Text(
+            'Пользовательские настройки',
+            style: TextStyle(
+                fontFamily: constants.fontFamily, fontWeight: FontWeight.bold),
+          )
         ]),
       ),
     );
@@ -473,29 +562,6 @@ class _BookPageState extends State<BookPage> {
       },
     );
   }
-
-  // Widget elevatedButton(BuildContext context) {
-  //   return ElevatedButton(
-  //     style: ElevatedButton.styleFrom(
-  //       primary: Colors.black,
-  //       fixedSize: Size(MediaQuery.of(context).size.width * 0.95, 50),
-  //       shape:
-  //           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-  //     ),
-  //     onPressed: () {
-  //       setState(() {
-  //         widget.torrent.title = _controller[0].text;
-  //         widget.torrent.image = _controller[1].text;
-  //         DBHelper.instance.updateBook(widget.torrent);
-  //         Navigator.pop(context);
-  //       });
-  //     },
-  //     child: Text('Сохранить',
-  //         textAlign: TextAlign.start,
-  //         style: TextStyle(
-  //             fontFamily: constants.fontFamily, fontWeight: FontWeight.bold)),
-  //   );
-  // }
 
   Widget textInput(TextEditingController _controller) {
     return TextField(
