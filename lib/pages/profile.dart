@@ -122,6 +122,20 @@ class _ProfileState extends State<Profile> {
                         )
                       ],
                     ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'v.0.2.3',
+                          style: TextStyle(
+                            fontFamily: constants.fontFamily,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

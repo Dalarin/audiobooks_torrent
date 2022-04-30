@@ -126,7 +126,11 @@ class _BookElementState extends State<BookElement> {
       MaterialPageRoute(
         builder: (context) => BookPage(widget.api, torrent: book),
       ),
-    ).then((value) => setState(() => {}));
+    ).then((value) {
+      setState(() {
+        widget.notifyParent();
+      });
+    });
   }
 
   createListDialog() {

@@ -409,7 +409,10 @@ class _FavoritedState extends State<Favorited> {
   void showFilter(BuildContext context) {
     AlertDialog alert = AlertDialog(
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        borderRadius: BorderRadius.all(
+          Radius.circular(32.0),
+        ),
+      ),
       insetPadding: const EdgeInsets.all(15),
       contentPadding: EdgeInsets.zero,
       content: Container(
@@ -577,9 +580,10 @@ class _FavoritedState extends State<Favorited> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.symmetric(horizontal: 15),
             height: 80,
-            child: Text(text,
-                style:
-                    TextStyle(fontFamily: constants.fontFamily, fontSize: 16)),
+            child: Text(
+              text,
+              style: TextStyle(fontFamily: constants.fontFamily, fontSize: 16),
+            ),
           ),
         ),
       ),

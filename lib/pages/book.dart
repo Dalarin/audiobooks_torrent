@@ -305,106 +305,118 @@ class _BookPageState extends State<BookPage> {
   }
 
   Widget descriptionContainer(Book book) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
             children: [
-              Column(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    'Жанр',
-                    style: TextStyle(
-                        fontFamily: constants.fontFamily,
-                        fontWeight: FontWeight.bold),
+                  Column(
+                    children: [
+                      Text(
+                        'Жанр',
+                        style: TextStyle(
+                            fontFamily: constants.fontFamily,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.33),
+                        child: Text(
+                            widget.torrent.genre.contains(',')
+                                ? widget.torrent.genre.substring(
+                                    0, widget.torrent.genre.indexOf(","))
+                                : widget.torrent.genre,
+                            softWrap: true,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontFamily: constants.fontFamily)),
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 5),
-                  Container(
-                    constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.33),
-                    child: Text(
-                        widget.torrent.genre.contains(',')
-                            ? widget.torrent.genre
-                                .substring(0, widget.torrent.genre.indexOf(","))
-                            : widget.torrent.genre,
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: constants.fontFamily)),
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  Text(
-                    'Исполнитель',
-                    style: TextStyle(
-                        fontFamily: constants.fontFamily,
-                        fontWeight: FontWeight.bold),
+                  Column(
+                    children: [
+                      Text(
+                        'Исполнитель',
+                        style: TextStyle(
+                            fontFamily: constants.fontFamily,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.35),
+                        child: Text(
+                          book.executor,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: constants.fontFamily),
+                        ),
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 5),
-                  Container(
-                    constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.35),
-                    child: Text(
-                      book.executor,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: constants.fontFamily),
+                  Column(children: [
+                    Text(
+                      'Аудио',
+                      style: TextStyle(
+                          fontFamily: constants.fontFamily,
+                          fontWeight: FontWeight.bold),
                     ),
-                  )
+                    const SizedBox(height: 5),
+                    Text(
+                      book.time,
+                      style: TextStyle(fontFamily: constants.fontFamily),
+                    )
+                  ])
                 ],
               ),
-              Column(children: [
+              const SizedBox(height: 25),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(
-                  'Аудио',
+                  'Описание',
                   style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  book.time,
-                  style: TextStyle(fontFamily: constants.fontFamily),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: constants.fontFamily),
                 )
-              ])
+              ]),
+              const SizedBox(height: 5),
+              Text(
+                book.description,
+                style: TextStyle(height: 1.5, fontFamily: constants.fontFamily),
+              ),
+              const SizedBox(height: 25),
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                Text(
+                  'Связанные книги:',
+                  textAlign: TextAlign.left,
+                  style:
+                      TextStyle(height: 1.5, fontFamily: constants.fontFamily),
+                ),
+              ]),
             ],
           ),
-          const SizedBox(height: 25),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              'Описание',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontFamily: constants.fontFamily),
-            )
-          ]),
-          const SizedBox(height: 5),
-          Text(
-            book.description,
-            style: TextStyle(height: 1.5, fontFamily: constants.fontFamily),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            children: [
+              linkedBooks(),
+              const SizedBox(height: 25),
+              widget.torrent.isFavorited || widget.torrent.isDownloaded
+                  ? Padding(
+                      child: userSettings(),
+                      padding: const EdgeInsets.only(bottom: 15),
+                    )
+                  : Container()
+            ],
           ),
-          const SizedBox(height: 25),
-          Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-            Text(
-              'Связанные книги:',
-              textAlign: TextAlign.left,
-              style: TextStyle(height: 1.5, fontFamily: constants.fontFamily),
-            ),
-          ]),
-          linkedBooks(),
-          const SizedBox(height: 25),
-          widget.torrent.isFavorited || widget.torrent.isDownloaded
-              ? Padding(
-                  child: userSettings(),
-                  padding: const EdgeInsets.only(bottom: 15),
-                )
-              : Container()
-        ],
-      ),
+        )
+      ],
     );
   }
 
@@ -414,41 +426,53 @@ class _BookPageState extends State<BookPage> {
             future:
                 widget.api.getSimilarBooks('${widget.torrent.id}', widget.api),
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text(
+                  'Связанные книги отсутствуют',
+                  style: TextStyle(fontFamily: constants.fontFamily),
+                );
+              }
               if (snapshot.hasData) {
                 List<Book> similarBooks = snapshot.data as List<Book>;
                 if (similarBooks.isNotEmpty) {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.25,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 20),
-                        itemCount: similarBooks.length,
-                        itemBuilder: (context, index) {
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BookPage(widget.api,
-                                      torrent: similarBooks[index]),
+                    child: Row(
+                      children: [
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 15),
+                            itemCount: similarBooks.length,
+                            itemBuilder: (context, index) {
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BookPage(widget.api,
+                                          torrent: similarBooks[index]),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.4,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.32,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18.0),
+                                    child: image(similarBooks[index].image),
+                                  ),
                                 ),
                               );
                             },
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.4,
-                              height: MediaQuery.of(context).size.height * 0.32,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(18.0),
-                                child: image(similarBooks[index].image),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 } else {

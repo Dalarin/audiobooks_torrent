@@ -186,7 +186,8 @@ class Parser {
         .getElementsByClassName("post_body")[0]
         .getElementsByTagName('a'));
     similarBook.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
-    similarBook = similarBook.sublist(0, 5);
+    int endIndex = similarBook.length >= 5 ? 5 : similarBook.length;
+    similarBook = similarBook.sublist(0, endIndex).toSet().toList();
     List<Book> books = [];
     for (int i = 0; i < similarBook.length; i++) {
       books.add(await api.openBook(similarBook[i]));
