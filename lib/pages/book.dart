@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import 'package:rutracker_app/elements/downloadButton.dart';
-import 'package:rutracker_app/providers/constants.dart';
+import 'package:rutracker_app/providers/storageManager.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
@@ -22,31 +22,35 @@ class BookPage extends StatefulWidget {
 }
 
 class _BookPageState extends State<BookPage> {
-  final List<TextEditingController> _controller =
-      List.generate(2, (i) => TextEditingController());
+  late final TextEditingController _titleController;
+  late final TextEditingController _imageController;
   late double width;
-  late double heigth;
+  late double height;
+  bool similarBooks = false;
 
   @override
   void initState() {
-    init();
-    _controller[0].text = widget.torrent.title;
-    _controller[1].text = widget.torrent.image;
+    _loadAsyncInfo();
     super.initState();
-    Future.delayed(Duration.zero, () {});
   }
 
-  void init() async {
+  void _loadAsyncInfo() async {
     List<Book> book = await DBHelper.instance.readBook(widget.torrent.id);
+    _titleController = TextEditingController();
+    _imageController = TextEditingController();
+    _titleController.text = widget.torrent.title;
+    _imageController.text = widget.torrent.image;
+    similarBooks = await StorageManager.readData('similarBooks');
     setState(() {
       widget.torrent = book.isNotEmpty ? book[0] : widget.torrent;
     });
+
   }
 
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
-    heigth = MediaQuery.of(context).size.height;
+    height = MediaQuery.of(context).size.height;
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
@@ -167,7 +171,7 @@ class _BookPageState extends State<BookPage> {
   Widget image(String bookImage) {
     return Container(
       width: width * 0.6,
-      height: heigth * 0.32,
+      height: height * 0.32,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18.0),
         child: widget.torrent.isDownloaded
@@ -200,7 +204,7 @@ class _BookPageState extends State<BookPage> {
               Container(
                 alignment: Alignment.topCenter,
                 padding: EdgeInsets.only(
-                  top: heigth * .64,
+                  top: height * .64,
                   right: 20.0,
                   left: 20.0,
                 ),
@@ -224,7 +228,7 @@ class _BookPageState extends State<BookPage> {
       children: [
         Container(
           width: width,
-          height: heigth * 0.67,
+          height: height * 0.67,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topRight,
@@ -378,7 +382,7 @@ class _BookPageState extends State<BookPage> {
                 style: const TextStyle(height: 1.5),
               ),
               const SizedBox(height: 25),
-              constants.similarBooks
+              similarBooks
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: const [
@@ -434,7 +438,7 @@ class _BookPageState extends State<BookPage> {
           },
           child: Container(
             width: width * 0.4,
-            height: heigth * 0.32,
+            height: height * 0.32,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18.0),
               child: image(similarBooks[index].image),
@@ -446,7 +450,7 @@ class _BookPageState extends State<BookPage> {
   }
 
   Widget linkedBooks() {
-    if (constants.similarBooks) {
+    if (similarBooks) {
       return FutureBuilder(
         future: widget.api.getSimilarBooks(
           widget.torrent.id.toString(),
@@ -466,7 +470,7 @@ class _BookPageState extends State<BookPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: heigth * 0.25,
+                      height: height * 0.25,
                       child: linkedList(similarBooks),
                     ),
                   ],
@@ -533,8 +537,8 @@ class _BookPageState extends State<BookPage> {
                       icon: const Icon(Icons.check_circle_outline),
                       onPressed: () {
                         setState(() {
-                          widget.torrent.title = _controller[0].text;
-                          widget.torrent.image = _controller[1].text;
+                          widget.torrent.title = _titleController.text;
+                          widget.torrent.image = _imageController.text;
                           DBHelper.instance.updateBook(widget.torrent);
                           Navigator.pop(context);
                         });
@@ -549,7 +553,7 @@ class _BookPageState extends State<BookPage> {
                         textAlign: TextAlign.start,
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 5),
-                    textInput(_controller[0])
+                    textInput(_titleController)
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -561,7 +565,7 @@ class _BookPageState extends State<BookPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
-                    textInput(_controller[1]),
+                    textInput(_imageController),
                   ],
                 ),
                 const SizedBox(height: 10),

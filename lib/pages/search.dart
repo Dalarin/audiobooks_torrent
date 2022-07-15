@@ -39,10 +39,10 @@ class _SearchState extends State<Search> {
               Expanded(
                 child: SingleChildScrollView(
                   primary: true,
-                  child: body(),
                   physics: const BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  child: body(),
                 ),
               ),
             ],

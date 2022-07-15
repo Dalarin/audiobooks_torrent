@@ -1,7 +1,6 @@
 // ignore_for_file: camel_case_types, void_checks, import_of_legacy_library_into_null_safe, must_be_immutable
 
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
@@ -16,9 +15,10 @@ import 'package:rutracker_app/pages/favorited.dart';
 import 'package:rutracker_app/pages/profile.dart';
 import 'package:rutracker_app/pages/search.dart';
 import 'package:rutracker_app/pages/subHome.dart';
-import 'package:rutracker_app/providers/constants.dart';
+import 'package:rutracker_app/providers/storageManager.dart';
+import 'package:rutracker_app/providers/themeManager.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
-import 'package:easy_dynamic_theme/easy_dynamic_theme.dart';
+import 'package:provider/provider.dart';
 
 import 'providers/database.dart';
 
@@ -29,85 +29,47 @@ void main() async {
   );
   WidgetsFlutterBinding.ensureInitialized();
   RutrackerApi api = RutrackerApi();
-  String cookies = await constants.getCookies();
+  String cookies = await StorageManager.readData('cookies');
   bool isRestored = await api.restoreCookies(cookies);
-  bool darkTheme = await constants.getTheme();
-  var homePage = isRestored ? bottomNavigationBar(api) : Authorization(api);
-  constants.getSimilarBooks();
-  log("Current home page: ${homePage.toString()}");
-  log("Is light theme: ${!darkTheme}");
-  runApp(
-    EasyDynamicThemeWidget(
-      child: Home(homePage: homePage, theme: darkTheme),
+  var homePage = isRestored ? HomePage(api) : Authorization(api);
+  return runApp(
+    ChangeNotifierProvider<ThemeNotifier>(
+      create: (_) => ThemeNotifier(),
+      child: Home(homePage: homePage),
     ),
   );
 }
 
 class Home extends StatelessWidget {
-  const Home({Key? key, required this.homePage, required this.theme})
-      : super(key: key);
-  final bool theme;
+  const Home({Key? key, required this.homePage}) : super(key: key);
   final StatefulWidget homePage;
 
   @override
   Widget build(BuildContext context) {
-    if (Theme
-        .of(context)
-        .brightness == Brightness.dark) {
-      if (theme) {
-        EasyDynamicTheme.of(context).changeTheme();
-      }
-    }
-    return MaterialApp(
-      home: homePage,
-      theme: ThemeData(
-        fontFamily: "Gotham",
-        accentColor: const Color(0xFF4A73E7),
-        toggleableActiveColor: const Color(0xFF4A73E7),
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: const Color(0xFFFDFDFD),
-        textTheme: const TextTheme(
-          headline1: TextStyle(
-            color: Colors.black,
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        disabledColor: Colors.grey,
-      ),
-      darkTheme: ThemeData(
-          fontFamily: "Gotham",
-          accentColor: Colors.red.withOpacity(0.2),
-          toggleableActiveColor: Colors.red.withOpacity(0.5),
-          hintColor: Colors.black,
-          primaryColor: Colors.white,
-          brightness: Brightness.dark,
-          textTheme: const TextTheme(
-            headline1: TextStyle(
-              color: Colors.white,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
-          )
-      ),
-      themeMode: EasyDynamicTheme
-          .of(context)
-          .themeMode,
-      title: "Аудиокниги - Торрент",
+    return Consumer<ThemeNotifier>(
+      builder: (context, theme, _) {
+        return MaterialApp(
+          themeMode: theme.getTheme(),
+          theme: theme.lightTheme,
+          darkTheme: theme.darkTheme,
+          title: 'Аудиокниги - Торрент',
+          home: homePage,
+        );
+      },
     );
   }
 }
 
-class bottomNavigationBar extends StatefulWidget {
+class HomePage extends StatefulWidget {
   RutrackerApi api;
 
-  bottomNavigationBar(this.api, {Key? key}) : super(key: key);
+  HomePage(this.api, {Key? key}) : super(key: key);
 
   @override
-  _bottomNavigationBarState createState() => _bottomNavigationBarState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _bottomNavigationBarState extends State<bottomNavigationBar> {
+class _HomePageState extends State<HomePage> {
   final ReceivePort _port = ReceivePort();
 
   @override
@@ -124,7 +86,6 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
       _port.sendPort,
       'downloader_send_port',
     );
-    setState(() {});
     super.initState();
   }
 
@@ -148,9 +109,7 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme
-          .of(context)
-          .scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBody: true,
       body: _children[_currentIndex],
       bottomNavigationBar: bottomNavigationBar(),
@@ -168,13 +127,9 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 25),
       borderRadius: 15.0,
       currentIndex: _currentIndex,
-      backgroundColor: Theme
-          .of(context)
-          .bottomAppBarColor,
+      backgroundColor: Theme.of(context).bottomAppBarColor,
       elevation: 75.0,
-      selectedItemColor: Theme
-          .of(context)
-          .toggleableActiveColor,
+      selectedItemColor: Theme.of(context).toggleableActiveColor,
       unselectedItemColor: Colors.grey[500],
       selectedBackgroundColor: Colors.transparent,
       items: [

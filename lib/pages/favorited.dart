@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:rutracker_app/elements/book.dart';
 import 'package:rutracker_app/pages/list.dart';
 import 'package:rutracker_app/pages/search.dart';
-import 'package:rutracker_app/providers/constants.dart';
+import 'package:rutracker_app/providers/storageManager.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
@@ -48,32 +48,32 @@ class _FavoritedState extends State<Favorited> {
     return SafeArea(
       bottom: false,
       child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: Flex(
-            direction: Axis.vertical,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  child: body(),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Flex(
+          direction: Axis.vertical,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
+                child: body(),
               ),
-            ],
-          )),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void loadData() async {
-    sortOrder = (await constants.getSortOrder()).toString();
-    sortType = await constants.getSort().whenComplete(() => setState(() {}));
-    log('Sort order: $sortOrder, sortType: $sortType');
+  void _loadAsyncInfo() async {
+    sortOrder = await StorageManager.readData('sortOrder');
+    sortType = await StorageManager.readData('sortType');
   }
 
   @override
   void initState() {
-    loadData();
+    _loadAsyncInfo();
     super.initState();
   }
 
@@ -104,8 +104,8 @@ class _FavoritedState extends State<Favorited> {
               _controller[1].clear();
             } else {
               FunkyNotification(
-                      notificationText: 'Ошибка создания списка. Пустые поля')
-                  .showNotification(context);
+                notificationText: 'Ошибка создания списка. Пустые поля',
+              ).showNotification(context);
             }
           },
           icon: const Icon(Icons.check_circle_outline),
@@ -186,9 +186,7 @@ class _FavoritedState extends State<Favorited> {
         ),
         enabledBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(
-              15,
-            ),
+            Radius.circular(15),
           ),
         ),
       ),
@@ -453,7 +451,7 @@ class _FavoritedState extends State<Favorited> {
                   onTap: () => changeState(() {
                     setState(() {
                       sortOrder = sortOrder == "desc" ? "asc" : "desc";
-                      constants.saveSortOrder(sortOrder);
+                      StorageManager.saveData('sortOrder', sortOrder);
                     });
                   }),
                   child: Icon(Icons.sort_by_alpha,
@@ -469,7 +467,7 @@ class _FavoritedState extends State<Favorited> {
             onChanged: (int? value) {
               setState(() {
                 sortType = value!;
-                constants.saveSort(sortType);
+                StorageManager.saveData('sortType', sortType);
                 Navigator.pop(context);
               });
             },

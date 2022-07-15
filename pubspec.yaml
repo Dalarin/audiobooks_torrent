@@ -13,7 +13,6 @@ dependencies:
   audiotagger: ^2.2.1
   cached_network_image: ^3.2.0
   dartorrent_common: ^1.0.3
-  easy_dynamic_theme: ^2.2.0
   floating_bottom_navigation_bar: ^1.5.2
   html: ^0.15.0
   http: ^0.13.4
@@ -21,11 +20,13 @@ dependencies:
   just_audio_background: ^0.0.1-beta.7
   path_provider: ^2.0.11
   percent_indicator: ^4.2.2
+  provider: ^6.0.3
   proxies: ^0.2.0
   shared_preferences: ^2.0.11
   shimmer: ^2.0.0
   sqflite: ^2.0.1
   torrent_task: ^0.3.0
+
 dependency_overrides:
   http: ^0.13.4
   crypto: ^3.0.0

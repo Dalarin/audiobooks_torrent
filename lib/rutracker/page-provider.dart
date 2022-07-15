@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:proxies/proxies.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:rutracker_app/providers/constants.dart';
+import 'package:rutracker_app/providers/storageManager.dart';
 
 class PageProvider {
   bool authorized = false;
@@ -57,7 +57,7 @@ class PageProvider {
           cookie.lastIndexOf('expires'),
         );
         authorized = true;
-        constants.saveCookies(cookie);
+        StorageManager.saveData('cookies', cookie);
       } else {
         throw Exception("Ошибка авторизации = ${response.statusCode}");
       }

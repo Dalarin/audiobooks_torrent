@@ -5,7 +5,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:rutracker_app/main.dart';
 import 'package:rutracker_app/pages/search.dart';
-import 'package:rutracker_app/providers/constants.dart';
+import 'package:rutracker_app/providers/storageManager.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
 
 class Authorization extends StatefulWidget {
@@ -27,7 +27,7 @@ class _AuthorizationState extends State<Authorization> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => bottomNavigationBar(widget.api),
+        builder: (context) => HomePage(widget.api),
       ),
     );
   }
