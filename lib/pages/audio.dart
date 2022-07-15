@@ -15,11 +15,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rutracker_app/providers/database.dart';
-import 'package:rutracker_app/rutracker/providers/cp1251.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:audiotagger/audiotagger.dart';
 
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 
 class Playlist extends StatefulWidget {
@@ -90,9 +88,11 @@ class _PlaylistState extends State<Playlist> {
     try {
       int initialIndex = widget.book.listeningInfo.index;
       int initialPosition = widget.book.listeningInfo.position;
-      await _player.setAudioSource(_playlist,
-          initialIndex: initialIndex,
-          initialPosition: Duration(seconds: initialPosition));
+      _player.setAudioSource(
+        _playlist,
+        initialIndex: initialIndex,
+        initialPosition: Duration(seconds: initialPosition),
+      );
       _player.setSpeed(widget.book.listeningInfo.speed);
     } catch (e, stackTrace) {
       print("Ошибка загрузки плейлиста: $e");
@@ -137,6 +137,18 @@ class _PlaylistState extends State<Playlist> {
     );
   }
 
+  Widget errorImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18.0),
+      child: Container(
+        width: width * 0.18,
+        height: width * 0.17,
+        child: Image.asset('assets/cover.jpg', repeat: ImageRepeat.repeat),
+      ),
+    );
+  }
+
+
   Widget description() {
     return Container(
       decoration: BoxDecoration(
@@ -166,6 +178,7 @@ class _PlaylistState extends State<Playlist> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(18.0),
                 child: Image(
+                  errorBuilder: (context, exception, stackTrace) => errorImage(),
                   image: CachedNetworkImageProvider(widget.book.image),
                   filterQuality: FilterQuality.high,
                   fit: BoxFit.cover,
@@ -178,20 +191,14 @@ class _PlaylistState extends State<Playlist> {
               child: Text(
                 widget.book.title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  fontFamily: constants.fontFamily,
                 ),
               ),
             ),
             const SizedBox(height: 15),
-            Text(
-              widget.book.author,
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-              ),
-            ),
+            Text(widget.book.author),
             const SizedBox(height: 15),
             StreamBuilder(
               stream: _player.currentIndexStream,
@@ -203,9 +210,6 @@ class _PlaylistState extends State<Playlist> {
                     _player.audioSource?.sequence[currentIndex].tag.title ?? '',
                     textAlign: TextAlign.center,
                     maxLines: 2,
-                    style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                    ),
                   ),
                 );
               },
@@ -266,11 +270,7 @@ class ControlButtons extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(32.0)),
       ),
-      title: Text(
-        "Главы",
-        style: TextStyle(
-            fontFamily: constants.fontFamily, fontWeight: FontWeight.bold),
-      ),
+      title: const Text("Главы", style: TextStyle(fontWeight: FontWeight.bold)),
       content: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height * .3,
@@ -309,10 +309,12 @@ class ControlButtons extends StatelessWidget {
 
   Widget listViewItem(IndexedAudioSource source, BuildContext context) {
     return Container(
-        constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width * 0.95, maxHeight: 100),
-        child: Text(source.tag.title,
-            style: TextStyle(fontFamily: constants.fontFamily)));
+      constraints: BoxConstraints(
+        minWidth: MediaQuery.of(context).size.width * 0.95,
+        maxHeight: 100,
+      ),
+      child: Text(source.tag.title),
+    );
   }
 
   @override
@@ -601,11 +603,13 @@ void showSliderDialog({
           height: 100.0,
           child: Column(
             children: [
-              Text('${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                  style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24.0)),
+              Text(
+                '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24.0,
+                ),
+              ),
               Slider(
                 thumbColor: Theme.of(context).toggleableActiveColor,
                 activeColor: Theme.of(context).toggleableActiveColor,

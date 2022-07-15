@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:rutracker_app/pages/book.dart';
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
@@ -37,12 +36,40 @@ class _BookElementState extends State<BookElement> {
     super.initState();
   }
 
+  Widget _bookHeaderWidget() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          constraints: BoxConstraints(maxWidth: width * 0.45),
+          child: Text(
+            widget.book.title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          constraints: BoxConstraints(maxWidth: width * 0.5, maxHeight: 30),
+          child: Text(
+            widget.book.author.trim(),
+            overflow: TextOverflow.ellipsis,
+          ),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return InkWell(
-      onTap: () => navigateToBook(widget.book),
+      onTap: () => _pushToScreenBook(widget.book),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         width: width * 0.95,
@@ -57,11 +84,11 @@ class _BookElementState extends State<BookElement> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 0),
-                      child: Container(
-                        width: width * 0.18,
-                        height: width * 0.17,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(18.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18.0),
+                        child: SizedBox(
+                          width: width * 0.18,
+                          height: width * 0.17,
                           child: widget.book.isDownloaded
                               ? cachedImage(widget.book)
                               : networkImage(widget.book.image),
@@ -71,34 +98,7 @@ class _BookElementState extends State<BookElement> {
                   ],
                 ),
                 const SizedBox(width: 25),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(maxWidth: width * 0.45),
-                      child: Text(
-                        widget.book.title,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Container(
-                      constraints:
-                          BoxConstraints(maxWidth: width * 0.5, maxHeight: 30),
-                      child: Text(
-                        widget.book.author.trim(),
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontFamily: constants.fontFamily),
-                      ),
-                    )
-                  ],
-                ),
+                _bookHeaderWidget(),
               ],
             ),
             Column(
@@ -118,18 +118,18 @@ class _BookElementState extends State<BookElement> {
     );
   }
 
-  Widget errorImage() {
-    return Container(
-      width: width * 0.18,
-      height: width * 0.17,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18.0),
-        child: Image.asset('assets/cover.jpg'),
+  Widget _errorImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18.0),
+      child: SizedBox(
+        width: width * 0.18,
+        height: width * 0.17,
+        child: Image.asset('assets/cover.jpg', repeat: ImageRepeat.repeat,),
       ),
     );
   }
 
-  void navigateToBook(Book book) {
+  void _pushToScreenBook(Book book) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -142,7 +142,7 @@ class _BookElementState extends State<BookElement> {
     });
   }
 
-  Widget listOfLists() {
+  Widget listOfLists(StateSetter setState) {
     // список списков, оригинально, правда?
     return FutureBuilder(
       future: Future.wait([
@@ -153,17 +153,21 @@ class _BookElementState extends State<BookElement> {
         if (snapshot.hasData) {
           List<BookList> bookList = (snapshot.data as List)[0];
           List<ListObject> books = (snapshot.data as List)[1];
-          return Container(
+          return SizedBox(
             width: width,
             height: height * 0.2,
             child: ListView.separated(
               separatorBuilder: (context, index) => const Divider(),
               itemCount: bookList.length,
               itemBuilder: (context, index) {
-                return Container(
+                return SizedBox(
                   width: width,
                   height: 50,
-                  child: checkBox(context, bookList, index, books, setState),
+                  child: checkBoxWidget(
+                    bookList[index],
+                    books,
+                    setState,
+                  ),
                 );
               },
             ),
@@ -174,7 +178,7 @@ class _BookElementState extends State<BookElement> {
     );
   }
 
-  createListDialog() {
+  void _createListDialog() {
     showModalBottomSheet<void>(
       isScrollControlled: true,
       context: context,
@@ -190,22 +194,22 @@ class _BookElementState extends State<BookElement> {
             return Padding(
               padding: MediaQuery.of(context).viewInsets,
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 25, horizontal: 15),
-                height: height * .3,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 25,
+                  horizontal: 15,
+                ),
+                height: height * 0.3,
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Списки',
-                        style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 15),
-                      listOfLists()
+                      listOfLists(setState)
                     ],
                   ),
                 ),
@@ -217,36 +221,47 @@ class _BookElementState extends State<BookElement> {
     );
   }
 
-  Widget checkBox(BuildContext context, List<BookList> bookList, int index,
-      List<ListObject> books, StateSetter setState) {
+  bool listObjectContains(List<ListObject> list, int id) {
+    for (var element in list) {
+      if (element.idList == id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Widget checkBoxWidget(
+      BookList list, List<ListObject> listObjects, StateSetter setState) {
     return CheckboxListTile(
-      selectedTileColor: Theme.of(context).toggleableActiveColor,
-      title: Text(
-        bookList[index].name,
-        style: TextStyle(
-          fontFamily: constants.fontFamily,
-        ),
-      ),
-      value: books
-          .where((element) => element.idList == bookList[index].id)
-          .isNotEmpty,
+      title: Text(list.name),
+      value: listObjectContains(listObjects, list.id!),
       onChanged: (bool? value) {
-        setState(() {
-          if (value == true) {
-            DBHelper.instance.createListObject(
-              ListObject(idList: bookList[index].id!, idBook: widget.book.id),
-            );
-            bookList[index].cover = widget.book.image;
-            DBHelper.instance.updateList(bookList[index]);
-          } else {
-            DBHelper.instance
-                .deleteBooksInsideLists(widget.book.id, bookList[index].id!);
-          }
-          widget.notifyParent();
-        });
+        if (value == true) {
+          ListObject.addToList(
+            list.id!,
+            widget.book.id,
+            list,
+            widget.book.image,
+          );
+        } else {
+          ListObject.deleteFromList(list.id!, widget.book.id);
+        }
+        setState(() {});
       },
-      secondary: const Icon(Icons.list_alt_outlined),
     );
+  }
+
+  void setCompleted(Book book) {
+    if (book.listeningInfo.isCompleted) {
+      book.listeningInfo.index = 0;
+      book.listeningInfo.maxIndex = 0;
+    } else {
+      book.listeningInfo.index = 5;
+      book.listeningInfo.maxIndex = 5;
+    }
+    book.listeningInfo.isCompleted = !book.listeningInfo.isCompleted;
+    DBHelper.instance.updateBook(book).whenComplete(() => setState(() {}));
+    Navigator.pop(context);
   }
 
   void showContextDialog(BuildContext context, Book book) {
@@ -259,7 +274,7 @@ class _BookElementState extends State<BookElement> {
         ),
       ),
       insetPadding: const EdgeInsets.all(15),
-      content: Container(
+      content: SizedBox(
         width: width * .95,
         height: height * .2,
         child: Column(
@@ -282,29 +297,12 @@ class _BookElementState extends State<BookElement> {
                     color: Theme.of(context).toggleableActiveColor,
                   ),
                   const SizedBox(width: 15),
-                  Text(
-                    'Удалить из избранного',
-                    style: TextStyle(fontFamily: constants.fontFamily),
-                  )
+                  const Text('Удалить из избранного')
                 ],
               ),
             ),
             InkWell(
-              onTap: () {
-                if (book.listeningInfo.isCompleted) {
-                  book.listeningInfo.index = 0;
-                  book.listeningInfo.maxIndex = 0;
-                } else {
-                  book.listeningInfo.index = 5;
-                  book.listeningInfo.maxIndex = 5;
-                }
-                book.listeningInfo.isCompleted =
-                    !book.listeningInfo.isCompleted;
-                DBHelper.instance
-                    .updateBook(book)
-                    .whenComplete(() => setState(() {}));
-                Navigator.pop(context);
-              },
+              onTap: () => setCompleted(book),
               child: Row(
                 children: [
                   const Icon(Icons.check),
@@ -313,35 +311,29 @@ class _BookElementState extends State<BookElement> {
                     book.listeningInfo.isCompleted
                         ? 'Отметить непрослушанным'
                         : 'Отметить прослушанным',
-                    style: TextStyle(fontFamily: constants.fontFamily),
                   )
                 ],
               ),
             ),
             InkWell(
-              onTap: () => createListDialog(),
+              onTap: () => _createListDialog(),
               child: Row(
-                children: [
-                  const Icon(Icons.list),
-                  const SizedBox(width: 15),
-                  Text(
-                    'Списки',
-                    style: TextStyle(fontFamily: constants.fontFamily),
-                  )
+                children: const [
+                  Icon(Icons.list),
+                  SizedBox(width: 15),
+                  Text('Списки')
                 ],
               ),
             ),
             InkWell(
-              onTap: () =>
-                  book.isDownloaded ? deleteBook(book) : navigateToBook(book),
+              onTap: () => book.isDownloaded
+                  ? deleteBook(book)
+                  : _pushToScreenBook(book),
               child: Row(
                 children: [
                   Icon(book.isDownloaded ? Icons.delete : Icons.download),
                   const SizedBox(width: 15),
-                  Text(
-                    book.isDownloaded ? 'Удалить книгу' : 'Скачать книгу',
-                    style: TextStyle(fontFamily: constants.fontFamily),
-                  ),
+                  Text(book.isDownloaded ? 'Удалить книгу' : 'Скачать книгу'),
                 ],
               ),
             ),
@@ -386,6 +378,11 @@ class _BookElementState extends State<BookElement> {
   Widget cachedImage(Book book) {
     return Image(
       image: CachedNetworkImageProvider(book.image),
+      errorBuilder: (context, error, stackTrace) => _errorImage(),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
       filterQuality: FilterQuality.high,
       fit: BoxFit.cover,
     );
@@ -394,11 +391,11 @@ class _BookElementState extends State<BookElement> {
   Widget networkImage(String image) {
     return Image.network(
       image,
-      loadingBuilder: (context, child, loadingProgress) =>
-          (loadingProgress == null)
-              ? child
-              : const Center(child: CircularProgressIndicator()),
-      errorBuilder: (context, error, stackTrace) => errorImage(),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
+      errorBuilder: (context, error, stackTrace) => _errorImage(),
       fit: BoxFit.cover,
       filterQuality: FilterQuality.high,
       width: width * 0.6,

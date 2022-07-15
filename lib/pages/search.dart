@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:rutracker_app/pages/book.dart';
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/torrent.dart';
 import 'package:rutracker_app/rutracker/providers/sort.dart';
@@ -82,15 +81,11 @@ class _SearchState extends State<Search> {
               Container(
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: TextField(
-                  style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                      color: Theme.of(context).hintColor),
+                  style: TextStyle(color: Theme.of(context).hintColor),
                   onSubmitted: (value) => _lookingForQuery(value,
                       '1036,1279,1350,2127,2137,2152,2165,2324,2325,2326,2327,2328,2342,2348,2387,2388,2389,399,400,401,402,403,467,490,499,530,574,661,695,716'),
-                  decoration: InputDecoration.collapsed(
-                    hintText: "Поиск",
-                    hintStyle: TextStyle(fontFamily: constants.fontFamily),
-                  ),
+                  decoration:
+                      const InputDecoration.collapsed(hintText: "Поиск"),
                 ),
               ),
             ],
@@ -137,10 +132,10 @@ class _SearchState extends State<Search> {
       label: Text(
         label.name,
         style: TextStyle(
-            fontFamily: constants.fontFamily,
-            color: _selectedValue == label.index
-                ? Colors.white
-                : Theme.of(context).primaryColor),
+          color: _selectedValue == label.index
+              ? Colors.white
+              : Theme.of(context).primaryColor,
+        ),
       ),
       selected: _selectedValue == label.index,
       onSelected: (value) {
@@ -182,11 +177,8 @@ class _SearchState extends State<Search> {
               ),
             ),
           )
-        : Center(
-            child: Text(
-              "Ничего не найдено",
-              style: TextStyle(fontFamily: constants.fontFamily),
-            ),
+        : const Center(
+            child: Text("Ничего не найдено"),
           );
   }
 
@@ -217,7 +209,7 @@ class _SearchState extends State<Search> {
         ),
         child: Text(
           torrent.theme,
-          style: TextStyle(fontFamily: constants.fontFamily, height: 1.4),
+          style: const TextStyle(height: 1.4),
         ),
       ),
     );
@@ -298,10 +290,10 @@ class FunkyNotificationState extends State<FunkyNotification>
                   padding: const EdgeInsets.all(10.0),
                   child: Text(
                     widget.notificationText,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: constants.fontFamily),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

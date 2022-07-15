@@ -1,6 +1,5 @@
 // ignore_for_file: must_be_immutable, sized_box_for_whitespace, avoid_print
 
-import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -65,12 +64,9 @@ class _BookPageState extends State<BookPage> {
           Radius.circular(32.0),
         ),
       ),
-      title: Text(
+      title: const Text(
         "Подробная информация о книге",
-        style: TextStyle(
-          fontFamily: constants.fontFamily,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: Container(
         width: MediaQuery.of(context).size.width,
@@ -135,10 +131,10 @@ class _BookPageState extends State<BookPage> {
   Widget networkImage(String url) {
     return Image.network(
       url,
-      loadingBuilder: (context, child, loadingProgress) =>
-          loadingProgress == null
-              ? child
-              : const Center(child: CircularProgressIndicator()),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
       errorBuilder: (context, error, stackTrace) => errorImage(),
       fit: BoxFit.cover,
       filterQuality: FilterQuality.high,
@@ -147,21 +143,20 @@ class _BookPageState extends State<BookPage> {
   }
 
   Widget errorImage() {
-    return Container(
-      width: width * 0.18,
-      height: width * 0.17,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18.0),
-        child: Image.asset('assets/cover.jpg'),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18.0),
+      child: Container(
+        width: width * 0.18,
+        height: width * 0.17,
+        child: Image.asset('assets/cover.jpg', repeat: ImageRepeat.repeat),
       ),
     );
   }
 
-  Widget cachedImage(String url) {
+  Widget cachedImage(String urls) {
     return CachedNetworkImage(
-      imageUrl: url,
-      placeholder: (context, url) =>
-          const Center(child: CircularProgressIndicator()),
+      imageUrl: urls,
+      placeholder: (context, url) => networkImage(url),
       errorWidget: (context, exception, stackTrace) => errorImage(),
       fit: BoxFit.cover,
       width: width * 0.6,
@@ -190,7 +185,6 @@ class _BookPageState extends State<BookPage> {
       style: TextStyle(
         fontWeight: fontWeight,
         fontSize: size,
-        fontFamily: constants.fontFamily,
       ),
     );
   }
@@ -260,10 +254,10 @@ class _BookPageState extends State<BookPage> {
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 3,
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -274,10 +268,7 @@ class _BookPageState extends State<BookPage> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: constants.fontFamily,
-                      ),
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -305,6 +296,62 @@ class _BookPageState extends State<BookPage> {
     return Container();
   }
 
+  Widget bookInformationWidget(Book book) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          constraints: BoxConstraints(maxWidth: width * 0.25),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Жанр',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(book.genre),
+            ],
+          ),
+        ),
+        Container(
+          constraints: BoxConstraints(maxWidth: width * 0.25),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Исполнитель',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                book.executor,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        Container(
+          constraints: BoxConstraints(maxWidth: width * 0.25),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text(
+                'Аудио',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                book.time,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
   Widget descriptionContainer(Book book) {
     return Column(
       children: [
@@ -312,121 +359,51 @@ class _BookPageState extends State<BookPage> {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        'Жанр',
-                        style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Container(
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.33),
-                        child: Text(
-                            widget.torrent.genre.contains(',')
-                                ? widget.torrent.genre.substring(
-                                    0, widget.torrent.genre.indexOf(","))
-                                : widget.torrent.genre,
-                            softWrap: true,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontFamily: constants.fontFamily)),
-                      )
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        'Исполнитель',
-                        style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.35,
-                        ),
-                        child: Text(
-                          book.executor,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  Column(children: [
-                    Text(
-                      'Аудио',
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      book.time,
-                      style: TextStyle(fontFamily: constants.fontFamily),
-                    )
-                  ])
-                ],
-              ),
+              bookInformationWidget(book),
               const SizedBox(height: 25),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: const [
                   Text(
                     'Описание',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontFamily: constants.fontFamily),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   )
                 ],
               ),
               const SizedBox(height: 5),
+              const SizedBox(height: 5),
               Text(
                 book.description,
-                style: TextStyle(
-                  height: 1.5,
-                  fontFamily: constants.fontFamily,
-                ),
+                textAlign: TextAlign.justify,
+                style: const TextStyle(height: 1.5),
               ),
               const SizedBox(height: 25),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Связанные книги:',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      height: 1.5,
-                      fontFamily: constants.fontFamily,
-                    ),
-                  ),
-                ],
-              ),
+              constants.similarBooks
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Связанные книги:',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(height: 1.5),
+                        ),
+                      ],
+                    )
+                  : Container()
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               linkedBooks(),
               const SizedBox(height: 25),
               widget.torrent.isFavorited || widget.torrent.isDownloaded
                   ? Padding(
-                      child: userSettings(),
                       padding: const EdgeInsets.only(bottom: 15),
+                      child: userSettings(),
                     )
                   : Container()
             ],
@@ -472,17 +449,12 @@ class _BookPageState extends State<BookPage> {
     if (constants.similarBooks) {
       return FutureBuilder(
         future: widget.api.getSimilarBooks(
-          '${widget.torrent.id}',
+          widget.torrent.id.toString(),
           widget.api,
         ),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Text(
-              'Связанные книги отсутствуют',
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-              ),
-            );
+            return const Text('Связанные книги отсутствуют');
           }
           if (snapshot.hasData) {
             List<Book> similarBooks = snapshot.data as List<Book>;
@@ -490,6 +462,8 @@ class _BookPageState extends State<BookPage> {
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       height: heigth * 0.25,
@@ -499,10 +473,7 @@ class _BookPageState extends State<BookPage> {
                 ),
               );
             } else {
-              return Text(
-                'Связанные книги отсутствуют',
-                style: TextStyle(fontFamily: constants.fontFamily),
-              );
+              return const Text('Связанные книги отсутствуют');
             }
           }
           return Container();
@@ -518,15 +489,12 @@ class _BookPageState extends State<BookPage> {
       child: Container(
         height: 30,
         child: Row(
-          children: [
-            const Icon(Icons.settings),
-            const SizedBox(width: 15),
+          children: const [
+            Icon(Icons.settings),
+            SizedBox(width: 15),
             Text(
               'Пользовательские настройки',
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold),
             )
           ],
         ),
@@ -557,12 +525,9 @@ class _BookPageState extends State<BookPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Кастомизация книги',
-                      style: TextStyle(
-                        fontFamily: constants.fontFamily,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: const Icon(Icons.check_circle_outline),
@@ -580,13 +545,9 @@ class _BookPageState extends State<BookPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Название книги',
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold),
-                    ),
+                    const Text('Название книги',
+                        textAlign: TextAlign.start,
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 5),
                     textInput(_controller[0])
                   ],
@@ -595,11 +556,9 @@ class _BookPageState extends State<BookPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Изображение книги',
-                      style: TextStyle(
-                          fontFamily: constants.fontFamily,
-                          fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
                     textInput(_controller[1]),
@@ -615,10 +574,9 @@ class _BookPageState extends State<BookPage> {
     );
   }
 
-  Widget textInput(TextEditingController _controller) {
+  Widget textInput(TextEditingController controller) {
     return TextField(
-      controller: _controller,
-      style: TextStyle(fontFamily: constants.fontFamily),
+      controller: controller,
       cursorColor: Colors.black,
       decoration: const InputDecoration(
         isDense: true,

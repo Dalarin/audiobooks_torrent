@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 import 'package:rutracker_app/elements/book.dart';
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
@@ -11,6 +9,7 @@ import 'package:rutracker_app/rutracker/rutracker.dart';
 class ListPage extends StatefulWidget {
   BookList list;
   RutrackerApi api;
+
   ListPage({Key? key, required this.list, required this.api}) : super(key: key);
 
   @override
@@ -88,9 +87,9 @@ class _ListPageState extends State<ListPage> {
                   widget.list.name,
                   maxLines: 1,
                   style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: constants.fontFamily),
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -105,7 +104,6 @@ class _ListPageState extends State<ListPage> {
                       widget.list.description,
                       maxLines: 2,
                       style: TextStyle(
-                        fontFamily: constants.fontFamily,
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.normal,
                         fontSize: 13,
@@ -174,10 +172,9 @@ class _ListPageState extends State<ListPage> {
               Navigator.of(context).popUntil((_) => count++ >= 2);
             });
           },
-          child: Text(
+          child: const Text(
             'Да',
-            style: TextStyle(
-                fontFamily: constants.fontFamily, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         )
       ],
@@ -194,10 +191,7 @@ class _ListPageState extends State<ListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text(
-              'Вы уверены, что хотите удалить список ${widget.list.name}?',
-              style: TextStyle(fontFamily: constants.fontFamily),
-            )
+            Text('Вы уверены, что хотите удалить список ${widget.list.name}?')
           ],
         ),
       ),
@@ -217,7 +211,7 @@ class _ListPageState extends State<ListPage> {
         children: [
           Icon(icon),
           const SizedBox(width: 15),
-          Text(label, style: TextStyle(fontFamily: constants.fontFamily))
+          Text(label)
         ],
       ),
     );

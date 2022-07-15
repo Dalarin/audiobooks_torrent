@@ -61,12 +61,12 @@ class _ProfileState extends State<Profile> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'Темная тема',
                           style: TextStyle(
-                              fontFamily: constants.fontFamily,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Switch(
                           value:
@@ -87,12 +87,12 @@ class _ProfileState extends State<Profile> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            const Text(
                               'Показывать привязанные книги',
                               style: TextStyle(
-                                  fontFamily: constants.fontFamily,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Switch(
                               value: constants.similarBooks,
@@ -110,12 +110,12 @@ class _ProfileState extends State<Profile> {
                           children: [
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.8,
-                              child: Text(
+                              child: const Text(
                                 'Экспериментальная функция. Включать на свой страх и риск',
                                 style: TextStyle(
-                                    fontFamily: constants.fontFamily,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -127,13 +127,8 @@ class _ProfileState extends State<Profile> {
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'v.0.3.0',
-                          style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                          ),
-                        ),
+                      children: const [
+                        Text('v.0.3.5'),
                       ],
                     ),
                   ],

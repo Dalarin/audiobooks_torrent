@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class constants {
   static bool similarBooks = false;
-  static String fontFamily = "Gotham";
 
   static Future<void> saveSimilarBooks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

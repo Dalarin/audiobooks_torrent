@@ -34,15 +34,14 @@ class Parser {
     for (int i = 0; i < tracks.length; i++) {
       var documents = tracks[i].getElementsByTagName("td");
       if (documents.length > 1) {
-        Torrent torrent = Torrent(
+        torrents.add(Torrent(
             forum: documents[2].text.trim(),
             theme: documents[3].text.trim(),
             size: documents[5].text.trim(),
             link: documents[3]
                 .getElementsByTagName('a')[0]
                 .attributes['data-topic_id']
-                .toString());
-        torrents.add(torrent);
+                .toString()));
       } else {
         throw Exception("Не найдено");
       }

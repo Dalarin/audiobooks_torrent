@@ -23,18 +23,17 @@ import 'package:easy_dynamic_theme/easy_dynamic_theme.dart';
 import 'providers/database.dart';
 
 void main() async {
-  await JustAudioBackground.init(
-      androidNotificationChannelName: 'Audio playback',
-      androidNotificationOngoing: true);
+  JustAudioBackground.init(
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
   WidgetsFlutterBinding.ensureInitialized();
   RutrackerApi api = RutrackerApi();
   String cookies = await constants.getCookies();
-  constants.getSimilarBooks();
-  var homePage = (await api.restoreCookies(cookies))
-      ? bottomNavigationBar(api)
-      : Authorization(api);
+  bool isRestored = await api.restoreCookies(cookies);
   bool darkTheme = await constants.getTheme();
-
+  var homePage = isRestored ? bottomNavigationBar(api) : Authorization(api);
+  constants.getSimilarBooks();
   log("Current home page: ${homePage.toString()}");
   log("Is light theme: ${!darkTheme}");
   runApp(
@@ -52,43 +51,48 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context).brightness == Brightness.dark
-        ? theme
-            ? EasyDynamicTheme.of(context).changeTheme()
-            : null
-        : null;
+    if (Theme
+        .of(context)
+        .brightness == Brightness.dark) {
+      if (theme) {
+        EasyDynamicTheme.of(context).changeTheme();
+      }
+    }
     return MaterialApp(
       home: homePage,
       theme: ThemeData(
+        fontFamily: "Gotham",
         accentColor: const Color(0xFF4A73E7),
         toggleableActiveColor: const Color(0xFF4A73E7),
         primaryColor: Colors.black,
         scaffoldBackgroundColor: const Color(0xFFFDFDFD),
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           headline1: TextStyle(
-              fontFamily: constants.fontFamily,
-              color: Colors.black,
-              fontSize: 30,
-              fontWeight: FontWeight.bold),
+            color: Colors.black,
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         disabledColor: Colors.grey,
       ),
       darkTheme: ThemeData(
-        accentColor: Colors.red.withOpacity(0.2),
-        toggleableActiveColor: Colors.red.withOpacity(0.5),
-        hintColor: Colors.black,
-        primaryColor: Colors.white,
-        brightness: Brightness.dark,
-        // toggleableActiveColor: Colors.red,
-        textTheme: TextTheme(
-          headline1: TextStyle(
-              fontFamily: constants.fontFamily,
+          fontFamily: "Gotham",
+          accentColor: Colors.red.withOpacity(0.2),
+          toggleableActiveColor: Colors.red.withOpacity(0.5),
+          hintColor: Colors.black,
+          primaryColor: Colors.white,
+          brightness: Brightness.dark,
+          textTheme: const TextTheme(
+            headline1: TextStyle(
               color: Colors.white,
               fontSize: 30,
-              fontWeight: FontWeight.bold),
-        ),
+              fontWeight: FontWeight.bold,
+            ),
+          )
       ),
-      themeMode: EasyDynamicTheme.of(context).themeMode,
+      themeMode: EasyDynamicTheme
+          .of(context)
+          .themeMode,
       title: "Аудиокниги - Торрент",
     );
   }
@@ -131,8 +135,8 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
   }
 
   Future<void> _initDirectory(String subPath) async {
-    final Directory directory = Directory(
-        '${(await getApplicationDocumentsDirectory()).path}/$subPath/');
+    Directory path = await getApplicationDocumentsDirectory();
+    final Directory directory = Directory('${path.path}}/$subPath/');
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -144,7 +148,9 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme
+          .of(context)
+          .scaffoldBackgroundColor,
       extendBody: true,
       body: _children[_currentIndex],
       bottomNavigationBar: bottomNavigationBar(),
@@ -162,9 +168,13 @@ class _bottomNavigationBarState extends State<bottomNavigationBar> {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 25),
       borderRadius: 15.0,
       currentIndex: _currentIndex,
-      backgroundColor: Theme.of(context).bottomAppBarColor,
+      backgroundColor: Theme
+          .of(context)
+          .bottomAppBarColor,
       elevation: 75.0,
-      selectedItemColor: Theme.of(context).toggleableActiveColor,
+      selectedItemColor: Theme
+          .of(context)
+          .toggleableActiveColor,
       unselectedItemColor: Colors.grey[500],
       selectedBackgroundColor: Colors.transparent,
       items: [

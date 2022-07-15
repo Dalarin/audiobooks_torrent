@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:rutracker_app/elements/book.dart';
 
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
@@ -70,24 +69,21 @@ class _subHomeState extends State<subHome> {
             color: Colors.blue.withOpacity(0.3),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 15),
           child: Text(
             "Недавно прослушанное",
-            style: TextStyle(
-              fontSize: 16,
-              fontFamily: constants.fontFamily,
-            ),
+            style: TextStyle(fontSize: 16),
           ),
         ),
         const SizedBox(height: 15),
         listViewListening(),
         const SizedBox(height: 15),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 15),
           child: Text(
             "Любимое",
-            style: TextStyle(fontSize: 16, fontFamily: constants.fontFamily),
+            style: TextStyle(fontSize: 16),
           ),
         ),
         const SizedBox(height: 15),
@@ -146,16 +142,11 @@ class _subHomeState extends State<subHome> {
           child: Container(
             width: MediaQuery.of(context).size.width,
             alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             height: 80,
             child: Text(
               text,
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
         ),

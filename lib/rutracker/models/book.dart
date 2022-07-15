@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
 
 import 'package:rutracker_app/rutracker/models/listeningInfo.dart' as listen;
 
@@ -185,4 +183,8 @@ class Book {
   String toString() {
     return 'Book(id: $id, title: $title, releaseYear: $releaseYear, author: $author, genre: $genre, executor: $executor, bitrate: $bitrate, image: $image, time: $time, size: $size, series: $series, description: $description, bookNumber: $bookNumber, isFavorited: $isFavorited, isDownloaded: $isDownloaded, listeningInfo: $listeningInfo)';
   }
+}
+
+class BookProvider {
+
 }

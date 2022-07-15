@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rutracker_app/pages/audio.dart';
-import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/providers/torrent.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
@@ -62,7 +61,7 @@ class _DownloadButtonState extends State<DownloadButton> {
             : downloadingRow(),
         animationDuration: 0,
         percent: percent,
-        barRadius: const Radius.circular(35),
+        barRadius: const Radius.circular(20),
         progressColor: Theme.of(context).toggleableActiveColor,
       ),
       onTap: () => !downloading
@@ -117,10 +116,10 @@ class _DownloadButtonState extends State<DownloadButton> {
             }),
         Text(
           "${(percent * 100).toStringAsFixed(2)}%",
-          style: TextStyle(
-              fontFamily: constants.fontFamily,
-              fontSize: 17,
-              color: Colors.white),
+          style: const TextStyle(
+            fontSize: 17,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -129,17 +128,10 @@ class _DownloadButtonState extends State<DownloadButton> {
   Widget listenAudioRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Слушать',
-          style: TextStyle(
-            fontFamily: constants.fontFamily,
-            fontSize: 17,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(width: 5),
-        const Icon(Icons.headphones, color: Colors.white)
+      children: const [
+        Text('Слушать', style: TextStyle(fontSize: 17, color: Colors.white)),
+        SizedBox(width: 5),
+        Icon(Icons.headphones, color: Colors.white)
       ],
     );
   }
@@ -147,16 +139,10 @@ class _DownloadButtonState extends State<DownloadButton> {
   Widget downloadRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Скачать',
-          style: TextStyle(
-              fontFamily: constants.fontFamily,
-              fontSize: 20,
-              color: Colors.white),
-        ),
-        const SizedBox(width: 5),
-        const Icon(
+      children: const [
+        Text('Скачать', style: TextStyle(fontSize: 20, color: Colors.white)),
+        SizedBox(width: 5),
+        Icon(
           Icons.download,
           size: 25.0,
           color: Colors.white,
@@ -189,8 +175,8 @@ class _DownloadButtonState extends State<DownloadButton> {
 
   void cancelInstallation() async {
     if (torrentClient != null) {
-      final directory = Directory(
-          '${(await getApplicationDocumentsDirectory()).path}/books/${widget.book.id}/');
+      var dir = await getApplicationDocumentsDirectory();
+      final directory = Directory('${dir.path}/books/${widget.book.id}/');
       canceled = true;
       torrentClient!.task!.stop();
       timer!.cancel();
@@ -217,17 +203,11 @@ class _DownloadButtonState extends State<DownloadButton> {
         child: RichText(
           text: TextSpan(
             text: 'Вы уверены, что хотите удалить книгу ',
-            style: TextStyle(
-              fontFamily: constants.fontFamily,
-              fontSize: 17,
-            ),
+            style: const TextStyle(fontSize: 17),
             children: [
               TextSpan(
                 text: '${widget.book.title}?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontFamily: constants.fontFamily,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -238,13 +218,9 @@ class _DownloadButtonState extends State<DownloadButton> {
 
   void deletingDialog(BuildContext context) {
     Widget confirmButton = TextButton(
-        child: Text(
-          "Да",
-          style: TextStyle(
-            fontFamily: constants.fontFamily,
-          ),
-        ),
-        onPressed: () => deleteBook());
+      onPressed: () => deleteBook(),
+      child: const Text("Да"),
+    );
     AlertDialog alert = AlertDialog(
       actions: [confirmButton],
       shape: const RoundedRectangleBorder(
@@ -252,12 +228,9 @@ class _DownloadButtonState extends State<DownloadButton> {
           Radius.circular(32.0),
         ),
       ),
-      title: Text(
+      title: const Text(
         "Удаление",
-        style: TextStyle(
-          fontFamily: constants.fontFamily,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: deleatingDialogContent(),
     );
@@ -295,11 +268,4 @@ class _DownloadButtonState extends State<DownloadButton> {
     });
   }
 
-  Future<String> _createDirectory(String subPath) async {
-    final directory = Directory(
-        '${(await getApplicationDocumentsDirectory()).path}/$subPath/');
-    return (await directory.exists())
-        ? directory.path
-        : (await directory.create(recursive: true)).path;
-  }
 }

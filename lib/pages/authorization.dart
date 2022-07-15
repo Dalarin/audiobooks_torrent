@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:rutracker_app/main.dart';
+import 'package:rutracker_app/pages/search.dart';
 import 'package:rutracker_app/providers/constants.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
 
@@ -17,6 +18,11 @@ class Authorization extends StatefulWidget {
 }
 
 class _AuthorizationState extends State<Authorization> {
+  List<TextEditingController> _controller =
+      List.generate(2, (i) => TextEditingController());
+  late double width;
+  late double heigth;
+
   void pushToMain() {
     Navigator.pushReplacement(
       context,
@@ -26,19 +32,19 @@ class _AuthorizationState extends State<Authorization> {
     );
   }
 
-  List<TextEditingController> _controller =
-      List.generate(2, (i) => TextEditingController());
-  bool isError = false;
-
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
+    heigth = MediaQuery.of(context).size.height;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         appBar: appBar(),
         body: Center(
-          child: SingleChildScrollView(child: body(context)),
+          child: SingleChildScrollView(
+            child: body(context),
+          ),
         ),
       ),
     );
@@ -50,32 +56,33 @@ class _AuthorizationState extends State<Authorization> {
       iconTheme: const IconThemeData(color: Colors.black),
       backgroundColor: Colors.transparent,
       centerTitle: true,
-      title: Text("Авторизация",
-          style: TextStyle(
-              fontFamily: constants.fontFamily, fontWeight: FontWeight.bold)),
+      title: Text("Авторизация", style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
-  Widget image(BuildContext context) {
+  Widget image() {
     return Container(
-        alignment: Alignment.center,
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .35),
-        decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(15.0))),
-        child: Image.asset('assets/login.png'));
+      alignment: Alignment.center,
+      constraints: BoxConstraints(maxHeight: heigth * 0.35),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(
+          Radius.circular(15.0),
+        ),
+      ),
+      child: Image.asset('assets/login.png'),
+    );
   }
 
-  void login(String username, String password) async {
+  void _login(String username, String password) async {
     if (username.isNotEmpty && password.isNotEmpty) {
       if (await widget.api.login(username, password)) {
         pushToMain();
-      } else {
-        setState(() => isError = true);
+        return null;
       }
-    } else {
-      setState(() => isError = true);
     }
+    FunkyNotification(
+      notificationText: "Ошибка авторизации",
+    ).showNotification(context);
   }
 
   Widget body(BuildContext context) {
@@ -87,39 +94,16 @@ class _AuthorizationState extends State<Authorization> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            image(context),
+            image(),
             const SizedBox(height: 20),
-            Text(
-              "Логин",
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-                fontSize: 17,
-              ),
-            ),
+            Text("Логин", style: TextStyle(fontSize: 17)),
             const SizedBox(height: 10),
             textInput(false, _controller[0]),
             const SizedBox(height: 15),
-            Text(
-              "Пароль",
-              style: TextStyle(
-                fontFamily: constants.fontFamily,
-                fontSize: 17,
-              ),
-            ),
+            Text("Пароль", style: TextStyle(fontSize: 17)),
             const SizedBox(height: 10),
             textInput(true, _controller[1]),
-            const SizedBox(height: 15),
-            isError
-                ? Text(
-                    "Ошибка авторизации. Попытайтесь снова через несколько минут",
-                    style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : Container(),
-            const SizedBox(height: 15),
+            const SizedBox(height: 30),
             elevatedButton(context)
           ],
         ),
@@ -130,7 +114,6 @@ class _AuthorizationState extends State<Authorization> {
   Widget textInput(bool obsecureText, TextEditingController controller) {
     return TextField(
       controller: controller,
-      style: TextStyle(fontFamily: constants.fontFamily),
       cursorColor: Colors.black,
       obscureText: obsecureText,
       decoration: const InputDecoration(
@@ -159,14 +142,8 @@ class _AuthorizationState extends State<Authorization> {
           borderRadius: BorderRadius.circular(15.0),
         ),
       ),
-      onPressed: () => login(_controller[0].text, _controller[1].text),
-      child: Text(
-        'Войти',
-        style: TextStyle(
-          fontFamily: constants.fontFamily,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      onPressed: () => _login(_controller[0].text, _controller[1].text),
+      child: Text('Войти', style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }

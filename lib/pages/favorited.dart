@@ -81,10 +81,9 @@ class _FavoritedState extends State<Favorited> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
+        const Text(
           'Создание списка',
           style: TextStyle(
-            fontFamily: constants.fontFamily,
             fontWeight: FontWeight.bold,
             fontSize: 17,
           ),
@@ -137,12 +136,9 @@ class _FavoritedState extends State<Favorited> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   listDescription(),
-                  Text(
+                  const Text(
                     'Название списка',
-                    style: TextStyle(
-                      fontFamily: constants.fontFamily,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
                   textInput(
@@ -151,11 +147,9 @@ class _FavoritedState extends State<Favorited> {
                       _controller[0],
                       25),
                   const SizedBox(height: 5),
-                  Text(
+                  const Text(
                     'Описание списка',
-                    style: TextStyle(
-                        fontFamily: constants.fontFamily,
-                        fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
                   textInput(
@@ -174,10 +168,10 @@ class _FavoritedState extends State<Favorited> {
   }
 
   Widget textInput(EdgeInsets insets, int maxLines,
-      TextEditingController _controller, int textLimit) {
+      TextEditingController controller, int textLimit) {
     return TextField(
-      controller: _controller,
-      style: TextStyle(fontFamily: constants.fontFamily),
+      controller: controller,
+      style: const TextStyle(fontFamily: "Gotham"),
       cursorColor: Colors.black,
       maxLines: maxLines,
       inputFormatters: [LengthLimitingTextInputFormatter(textLimit)],
@@ -232,7 +226,6 @@ class _FavoritedState extends State<Favorited> {
                 color: isFavorited
                     ? Theme.of(context).disabledColor
                     : Theme.of(context).primaryColor,
-                fontFamily: constants.fontFamily,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -324,9 +317,7 @@ class _FavoritedState extends State<Favorited> {
                         list.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                            fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -338,7 +329,6 @@ class _FavoritedState extends State<Favorited> {
                       child: Text(
                         list.description,
                         maxLines: 3,
-                        style: TextStyle(fontFamily: constants.fontFamily),
                       ),
                     )
                   ],
@@ -382,9 +372,9 @@ class _FavoritedState extends State<Favorited> {
                   Radius.circular(18),
                 ),
               ),
-              child: const Center(child: Icon(Icons.add)),
               width: MediaQuery.of(context).size.width,
               height: 70,
+              child: const Center(child: Icon(Icons.add)),
             ),
           ),
         ),
@@ -395,7 +385,10 @@ class _FavoritedState extends State<Favorited> {
   void showSortDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        borderRadius: BorderRadius.all(
+          Radius.circular(32.0),
+        ),
+      ),
       insetPadding: const EdgeInsets.all(15),
       contentPadding: EdgeInsets.zero,
       content: Container(
@@ -469,10 +462,7 @@ class _FavoritedState extends State<Favorited> {
                           : Theme.of(context).disabledColor),
                 )
               : null,
-          title: Text(
-            text,
-            style: TextStyle(fontFamily: constants.fontFamily),
-          ),
+          title: Text(text),
           leading: Radio<int>(
             value: value,
             groupValue: sortType,
@@ -508,17 +498,12 @@ class _FavoritedState extends State<Favorited> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Сортировать",
-                        style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                            fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 5),
-                      Text(
-                        sortMap[sortType].toString(),
-                        style: TextStyle(fontFamily: constants.fontFamily),
-                      )
+                      Text(sortMap[sortType].toString())
                     ],
                   ),
                 ),
@@ -529,13 +514,11 @@ class _FavoritedState extends State<Favorited> {
                   width: MediaQuery.of(context).size.width * .5,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: const [
                       Text(
                         'Фильтр',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontFamily: constants.fontFamily,
-                            fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -552,11 +535,12 @@ class _FavoritedState extends State<Favorited> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               List<Book> favoritedBooks = snapshot.data as List<Book>;
-              favoritedBooks.forEach((element) =>
-                  precacheImage(NetworkImage(element.image), context,
-                      onError: (Object object, StackTrace? trace) {
-                    log('Cant precache ${element.image}');
-                  }));
+              for (var element in favoritedBooks) {
+                precacheImage(NetworkImage(element.image), context,
+                    onError: (Object object, StackTrace? trace) {
+                  log('Cant precache ${element.image}');
+                });
+              }
               if (favoritedBooks.isNotEmpty) {
                 return ListView.builder(
                   physics: const ScrollPhysics(),
@@ -596,7 +580,7 @@ class _FavoritedState extends State<Favorited> {
             height: 80,
             child: Text(
               text,
-              style: TextStyle(fontFamily: constants.fontFamily, fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
         ),
