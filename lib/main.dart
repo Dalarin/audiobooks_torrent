@@ -1,26 +1,16 @@
 // ignore_for_file: camel_case_types, void_checks, import_of_legacy_library_into_null_safe, must_be_immutable
 
-import 'dart:async';
-import 'dart:io';
-import 'dart:isolate';
-import 'dart:ui';
-
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:path_provider/path_provider.dart';
-
-import 'package:rutracker_app/pages/authorization.dart';
-import 'package:rutracker_app/pages/favorited.dart';
-import 'package:rutracker_app/pages/profile.dart';
-import 'package:rutracker_app/pages/search.dart';
-import 'package:rutracker_app/pages/subHome.dart';
-import 'package:rutracker_app/providers/storageManager.dart';
-import 'package:rutracker_app/providers/themeManager.dart';
-import 'package:rutracker_app/rutracker/rutracker.dart';
 import 'package:provider/provider.dart';
+import 'package:rutracker_app/pages/authentication_page.dart';
+import 'package:rutracker_app/pages/favorite_page.dart';
+import 'package:rutracker_app/pages/home_page.dart';
+import 'package:rutracker_app/pages/search.dart';
+import 'package:rutracker_app/providers/themeManager.dart';
 
-import 'providers/database.dart';
+import 'bloc/authentication_bloc/authentication_bloc.dart';
 
 void main() async {
   JustAudioBackground.init(
@@ -28,83 +18,56 @@ void main() async {
     androidNotificationOngoing: true,
   );
   WidgetsFlutterBinding.ensureInitialized();
-  RutrackerApi api = RutrackerApi();
-  String cookies = await StorageManager.readData('cookies');
-  bool isRestored = await api.restoreCookies(cookies);
-  var homePage = isRestored ? HomePage(api) : Authorization(api);
   return runApp(
     ChangeNotifierProvider<ThemeNotifier>(
       create: (_) => ThemeNotifier(),
-      child: Home(homePage: homePage),
+      child: const Home(),
     ),
   );
 }
 
 class Home extends StatelessWidget {
-  const Home({Key? key, required this.homePage}) : super(key: key);
-  final StatefulWidget homePage;
+  const Home({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
       builder: (context, theme, _) {
         return MaterialApp(
-          themeMode: theme.getTheme(),
+          themeMode: ThemeMode.system,
           theme: theme.lightTheme,
           darkTheme: theme.darkTheme,
           title: 'Аудиокниги - Торрент',
-          home: homePage,
+          home: const AuthenticationPage(),
         );
       },
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  RutrackerApi api;
+class BottomNavBar extends StatefulWidget {
+  AuthenticationBloc authenticationBloc;
 
-  HomePage(this.api, {Key? key}) : super(key: key);
+  BottomNavBar({Key? key, required this.authenticationBloc}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _BottomNavBarState createState() => _BottomNavBarState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final ReceivePort _port = ReceivePort();
+class _BottomNavBarState extends State<BottomNavBar> {
+  int _currentIndex = 0;
+  final List<Widget> _children = [];
 
   @override
   void initState() {
-    _initDirectory("torrents");
-    _initDirectory("books");
-    _children = [
-      subHome(widget.api),
-      Search(widget.api),
-      Favorited(widget.api),
-      Profile(),
-    ];
-    IsolateNameServer.registerPortWithName(
-      _port.sendPort,
-      'downloader_send_port',
-    );
+    _children.addAll([
+      HomePage(authenticationBloc: widget.authenticationBloc),
+      SearchPage(authenticationBloc: widget.authenticationBloc),
+      FavoritePage(authenticationBloc: widget.authenticationBloc),
+    ]);
     super.initState();
   }
 
-  @override
-  void dispose() {
-    DBHelper.instance.close();
-    super.dispose();
-  }
-
-  Future<void> _initDirectory(String subPath) async {
-    Directory path = await getApplicationDocumentsDirectory();
-    final Directory directory = Directory('${path.path}}/$subPath/');
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-    }
-  }
-
-  int _currentIndex = 0;
-  List<Widget> _children = [];
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +98,9 @@ class _HomePageState extends State<HomePage> {
       items: [
         FloatingNavbarItem(icon: Icons.collections_bookmark),
         FloatingNavbarItem(icon: Icons.search),
-        FloatingNavbarItem(icon: Icons.bookmark_border),
-        FloatingNavbarItem(icon: Icons.person_outline),
+        FloatingNavbarItem(icon: Icons.favorite),
       ],
-      onTap: (int val) => onTap(val),
+      onTap: onTap,
     );
   }
 }

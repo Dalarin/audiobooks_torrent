@@ -1,42 +1,4 @@
-
-import 'package:rutracker_app/rutracker/models/listeningInfo.dart' as listen;
-
-const String book_tableName = "Books";
-
-class BookFields {
-  static final List<String> values = [
-    id,
-    title,
-    releaseYear,
-    author,
-    genre,
-    executor,
-    bitrate,
-    image,
-    time,
-    size,
-    series,
-    description,
-    bookNumber,
-    isFavorited,
-    isDownloaded,
-  ];
-  static const String id = 'id';
-  static const String title = 'title';
-  static const String releaseYear = 'releaseYear';
-  static const String author = 'author';
-  static const String genre = 'genre';
-  static const String executor = 'executor';
-  static const String bitrate = 'bitrate';
-  static const String image = 'image';
-  static const String time = 'time';
-  static const String size = 'size';
-  static const String series = 'series';
-  static const String description = 'description';
-  static const String bookNumber = 'bookNumber';
-  static const String isFavorited = 'isFavorited';
-  static const String isDownloaded = 'isDownloaded';
-}
+import 'package:rutracker_app/rutracker/models/listeningInfo.dart';
 
 class Book {
   int id;
@@ -52,94 +14,71 @@ class Book {
   String series;
   String description;
   String bookNumber;
-  bool isFavorited = false;
+  bool isFavorite = false;
   bool isDownloaded = false;
-  listen.listeningInfo listeningInfo;
+  ListeningInfo listeningInfo;
 
-  Book(
-      {required this.id,
-      required this.title,
-      required this.releaseYear,
-      required this.author,
-      required this.genre,
-      required this.executor,
-      required this.bitrate,
-      required this.image,
-      required this.time,
-      required this.size,
-      required this.series,
-      required this.description,
-      required this.bookNumber,
-      required this.isFavorited,
-      required this.isDownloaded,
-      required this.listeningInfo});
+  Book({
+    required this.id,
+    required this.title,
+    required this.releaseYear,
+    required this.author,
+    required this.genre,
+    required this.executor,
+    required this.bitrate,
+    required this.image,
+    required this.time,
+    required this.size,
+    required this.series,
+    required this.description,
+    required this.bookNumber,
+    required this.isFavorite,
+    required this.isDownloaded,
+    required this.listeningInfo,
+  });
 
-  Map<String, dynamic> toMap() {
+
+  factory Book.fromJson(Map<String, dynamic> json) {
+    return Book(
+      id: int.parse(json["id"]),
+      title: json["title"],
+      releaseYear: json["releaseYear"],
+      author: json["author"],
+      genre: json["genre"],
+      executor: json["executor"],
+      bitrate: json["bitrate"],
+      image: json["image"],
+      time: json["time"],
+      size: json["size"],
+      series: json["series"],
+      description: json["description"],
+      bookNumber: json["bookNumber"],
+      isFavorite: json["isFavorite"].toLowerCase() == 'true',
+      isDownloaded: json["isDownloaded"].toLowerCase() == 'true',
+      listeningInfo: ListeningInfo.fromJson(json["listeningInfo"])
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
-      'releaseYear': releaseYear,
-      'author': author,
-      'genre': genre,
-      'executor': executor,
-      'bitrate': bitrate,
-      'image': image,
-      'time': time,
-      'size': size,
-      'series': series,
-      'description': description,
-      'bookNumber': bookNumber,
-      'isFavorited': isFavorited ? 1 : 0,
-      'isDownloaded': isDownloaded ? 1 : 0,
+      "id": id,
+      "title": title,
+      "releaseYear": releaseYear,
+      "author": author,
+      "genre": genre,
+      "executor": executor,
+      "bitrate": bitrate,
+      "image": image,
+      "time": time,
+      "size": size,
+      "series": series,
+      "description": description,
+      "bookNumber": bookNumber,
+      "isFavorite": isFavorite,
+      "isDownloaded": isDownloaded,
+      "listeningInfo": listeningInfo.toJson(),
     };
   }
-
-  factory Book.fromMap(Map<String, dynamic> map, listen.listeningInfo listeningMap) {
-    return Book(
-        id: map['id']?.toInt() ?? 0,
-        title: map['title'] ?? '',
-        releaseYear: map['releaseYear'] ?? '',
-        author: map['author'] ?? '',
-        genre: map['genre'] ?? '',
-        executor: map['executor'] ?? '',
-        bitrate: map['bitrate'] ?? '',
-        image: map['image'] ?? '',
-        time: map['time'] ?? '',
-        size: map['size'] ?? '',
-        series: map['series'] ?? '',
-        description: map['description'] ?? '',
-        bookNumber: map['bookNumber'] ?? '',
-        isFavorited: map['isFavorited'] == 1 ? true : false,
-        isDownloaded: map['isDownloaded'] == 1 ? true : false,
-      listeningInfo: listeningMap);
-
-  }
-
-
-
-  static Book fromMaps(Map<String, dynamic> map) {
-    return Book(
-        id: map['id']?.toInt() ?? 0,
-        title: map['title'] ?? '',
-        releaseYear: map['releaseYear'] ?? '',
-        author: map['author'] ?? '',
-        genre: map['genre'] ?? '',
-        executor: map['executor'] ?? '',
-        bitrate: map['bitrate'] ?? '',
-        image: map['image'] ?? '',
-        time: map['time'] ?? '',
-        size: map['size'] ?? '',
-        series: map['series'] ?? '',
-        description: map['description'] ?? '',
-        bookNumber: map['bookNumber'] ?? '',
-        isFavorited: map['isFavorited'] == 1 ? true : false,
-        isDownloaded: map['isDownloaded'] == 1 ? true : false,
-        listeningInfo: listen.listeningInfo.fromMap(map));
-
-  }
-
-
-
 
   Book copyWith({
     int? id,
@@ -155,9 +94,9 @@ class Book {
     String? series,
     String? description,
     String? bookNumber,
-    bool? isFavorited,
+    bool? isFavorite,
     bool? isDownloaded,
-    listen.listeningInfo? listeningInfo,
+    ListeningInfo? listeningInfo,
   }) {
     return Book(
       id: id ?? this.id,
@@ -173,7 +112,7 @@ class Book {
       series: series ?? this.series,
       description: description ?? this.description,
       bookNumber: bookNumber ?? this.bookNumber,
-      isFavorited: isFavorited ?? this.isFavorited,
+      isFavorite: isFavorite ?? this.isFavorite,
       isDownloaded: isDownloaded ?? this.isDownloaded,
       listeningInfo: listeningInfo ?? this.listeningInfo,
     );
@@ -181,10 +120,6 @@ class Book {
 
   @override
   String toString() {
-    return 'Book(id: $id, title: $title, releaseYear: $releaseYear, author: $author, genre: $genre, executor: $executor, bitrate: $bitrate, image: $image, time: $time, size: $size, series: $series, description: $description, bookNumber: $bookNumber, isFavorited: $isFavorited, isDownloaded: $isDownloaded, listeningInfo: $listeningInfo)';
+    return 'Book(id: $id, title: $title, releaseYear: $releaseYear, author: $author, genre: $genre, executor: $executor, bitrate: $bitrate, image: $image, time: $time, size: $size, series: $series, description: $description, bookNumber: $bookNumber, isFavorited: $isFavorite, isDownloaded: $isDownloaded, listeningInfo: $listeningInfo)';
   }
-}
-
-class BookProvider {
-
 }

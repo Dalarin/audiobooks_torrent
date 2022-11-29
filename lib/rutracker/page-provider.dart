@@ -3,45 +3,37 @@
 import 'dart:convert' show utf8;
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:http/io_client.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:proxies/proxies.dart';
-
-import 'package:http/http.dart' as http;
 import 'package:rutracker_app/providers/storageManager.dart';
 
 class PageProvider {
+  final String _host = "https://rutracker.org";
   bool authorized = false;
   String cookie = "";
-  final String _host = "https://rutracker.org";
   String _loginURL = "";
   String _searchURL = "";
   String _threadURL = "";
-  http.Response? response;
-  late SimpleProxyProvider proxyProvider;
+  SimpleProxyProvider proxyProvider;
   late Proxy proxy;
   late IOClient client;
 
-  void loadInfo() async {
-    proxyProvider = SimpleProxyProvider(
-      '45.142.28.83',
-      8094,
-      'ppxvhriy',
-      'san9ra7rjh3v',
-    );
+  void _initializeProxy() async {
     proxy = await proxyProvider.getProxy();
     client = proxy.createIOClient();
   }
 
-  PageProvider() {
-    loadInfo();
+  PageProvider({required this.proxyProvider}) {
+    _initializeProxy();
     _loginURL = "$_host/forum/login.php";
     _searchURL = "$_host/forum/tracker.php";
     _threadURL = "$_host/forum/viewtopic.php";
   }
 
   Future<bool> login(String username, String password) async {
-    response = await client
+    await client
         .post(Uri.parse(_loginURL),
             body: {
               "login_username": username,

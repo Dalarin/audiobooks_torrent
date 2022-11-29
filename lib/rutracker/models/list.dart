@@ -1,59 +1,60 @@
-const String list_tablename = "Lists";
-
-class ListFields {
-  static final List<String> values = [id, name, description];
-  static const String id = 'id';
-  static const String name = 'name';
-  static const String cover = 'cover';
-  static const String description = 'description';
-}
+import 'book.dart';
 
 class BookList {
   int? id;
   String name;
-  String? cover;
+  String cover;
   String description;
+  List<Book> books = [];
+
   BookList({
-    required this.name,
-    required this.description,
-    this.cover,
     this.id,
+    required this.name,
+    required this.cover,
+    required this.description,
+    required this.books,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'cover': cover ?? "https://img-gorod.ru/21/111/2111187_detail.jpg",
-      'description': description,
-    };
+  factory BookList.fromJson(Map<String, dynamic> json) {
+    return BookList(
+      id: int.parse(json["id"]),
+      name: json["name"],
+      cover: json["cover"],
+      description: json["description"],
+      books: List.of(json["books"]).map((i) => Book.fromJson(i)).toList(),
+    );
   }
 
-  factory BookList.fromMap(Map<String, dynamic> map) {
-    return BookList(
-      id: map['id'] ?? 0,
-      cover: map['cover'] ?? "https://img-gorod.ru/21/111/2111187_detail.jpg",
-      name: map['name'] ?? '',
-      description: map['description'] ?? '',
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "cover": cover,
+      "description": description,
+      "books": books.map((e) => e.toJson()).toList(),
+    };
   }
 
   BookList copyWith({
     int? id,
-    String? cover,
     String? name,
+    String? cover,
     String? description,
+    List<Book>? books,
   }) {
     return BookList(
-      id: id ?? this.id,
-      cover: cover ?? this.cover,
       name: name ?? this.name,
+      cover: cover ?? this.cover,
       description: description ?? this.description,
+      books: books ?? this.books,
     );
   }
 
   @override
-  String toString() {
-    return 'BookList(id: $id, cover: $cover, name: $name, description: $description)';
-  }
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookList && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

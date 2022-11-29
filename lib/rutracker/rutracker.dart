@@ -12,8 +12,11 @@ import 'package:rutracker_app/rutracker/parser.dart';
 import 'package:rutracker_app/rutracker/providers/cp1251.dart';
 
 class RutrackerApi {
-  PageProvider pageProvider = PageProvider();
+  PageProvider pageProvider;
   Parser parser = Parser();
+
+
+  RutrackerApi({required this.pageProvider});
 
   Future<bool> login(String username, String password) async {
     try {

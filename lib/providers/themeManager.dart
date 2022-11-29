@@ -1,15 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'package:rutracker_app/providers/storageManager.dart';
 
 class ThemeNotifier with ChangeNotifier {
   final darkTheme = ThemeData(
     fontFamily: "Gotham",
-    accentColor: Colors.red.withOpacity(0.2),
     toggleableActiveColor: Colors.red.withOpacity(0.5),
     hintColor: Colors.black,
     primaryColor: Colors.white,
-    brightness: Brightness.dark,
     textTheme: const TextTheme(
       headline1: TextStyle(
         color: Colors.white,
@@ -17,14 +14,33 @@ class ThemeNotifier with ChangeNotifier {
         fontWeight: FontWeight.bold,
       ),
     ),
+    snackBarTheme: const SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(10),
+        ),
+      ),
+    ),
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      secondary: Colors.red.withOpacity(0.2),
+      brightness: Brightness.dark,
+    ),
   );
 
   final lightTheme = ThemeData(
     fontFamily: "Gotham",
     disabledColor: Colors.grey,
-    accentColor: const Color(0xFF4A73E7),
     toggleableActiveColor: const Color(0xFF4A73E7),
-    primaryColor: Colors.black,
+    snackBarTheme: const SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(10),
+        ),
+      ),
+    ),
+
     scaffoldBackgroundColor: const Color(0xFFFDFDFD),
     textTheme: const TextTheme(
       headline1: TextStyle(
@@ -33,13 +49,16 @@ class ThemeNotifier with ChangeNotifier {
         fontWeight: FontWeight.bold,
       ),
     ),
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      brightness: Brightness.light,
+    ),
   );
 
   ThemeMode getTheme() => _themeMode;
 
   ThemeMode _themeMode = ThemeMode.light;
 
-   bool _lightTheme = true;
+  bool _lightTheme = true;
 
   bool isLightTheme() => _lightTheme;
 
@@ -49,7 +68,6 @@ class ThemeNotifier with ChangeNotifier {
     StorageManager.saveData('theme', _lightTheme);
     notifyListeners();
   }
-
 
   ThemeNotifier() {
     StorageManager.readData('theme').then((value) {

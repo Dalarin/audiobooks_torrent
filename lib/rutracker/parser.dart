@@ -214,7 +214,7 @@ class Parser {
         time: _getTime(docs),
         description:
             overview.startsWith(':') ? overview.substring(1).trim() : overview,
-        listeningInfo: listeningInfo(
+        listeningInfo: ListeningInfo(
             bookID: int.parse(link),
             maxIndex: 0,
             isCompleted: false,
@@ -222,7 +222,7 @@ class Parser {
             position: 0,
             speed: 1.0),
         isDownloaded: false,
-        isFavorited: false);
+        isFavorite: false);
   }
 }
 

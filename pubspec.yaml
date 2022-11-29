@@ -13,7 +13,9 @@ dependencies:
   audiotagger: ^2.2.1
   cached_network_image: ^3.2.0
   dartorrent_common: ^1.0.3
+  equatable: ^2.0.5
   floating_bottom_navigation_bar: ^1.5.2
+  flutter_bloc: ^8.1.1
   html: ^0.15.0
   http: ^0.13.4
   just_audio: ^0.9.27
