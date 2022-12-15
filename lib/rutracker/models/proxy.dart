@@ -3,13 +3,24 @@ class Proxy {
   int port;
   String username;
   String password;
+  static Proxy standartProxy = Proxy(
+    host: '185.199.228.220',
+    port: 7300,
+    username: 'bbwknegm',
+    password: 'jijerh0tcg8r',
+  );
 
-  Proxy({required this.host, required this.port, required this.username, required this.password,});
+  Proxy({
+    required this.host,
+    required this.port,
+    required this.username,
+    required this.password,
+  });
 
   factory Proxy.fromJson(Map<String, dynamic> json) {
     return Proxy(
       host: json["host"],
-      port: int.parse(json["port"]),
+      port: json["port"],
       username: json["username"],
       password: json["password"],
     );

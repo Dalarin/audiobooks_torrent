@@ -4,10 +4,12 @@ import 'dart:convert' show utf8;
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:proxies/proxies.dart';
-import 'package:rutracker_app/providers/storageManager.dart';
+
+import '../providers/storage_manager.dart';
 
 class PageProvider {
   final String _host = "https://rutracker.org";
@@ -17,43 +19,45 @@ class PageProvider {
   String _searchURL = "";
   String _threadURL = "";
   SimpleProxyProvider proxyProvider;
-  late Proxy proxy;
-  late IOClient client;
+  late final IOClient client;
 
-  void _initializeProxy() async {
-    proxy = await proxyProvider.getProxy();
-    client = proxy.createIOClient();
-  }
-
-  PageProvider({required this.proxyProvider}) {
-    _initializeProxy();
+  PageProvider._create(this.client, this.proxyProvider) {
     _loginURL = "$_host/forum/login.php";
     _searchURL = "$_host/forum/tracker.php";
     _threadURL = "$_host/forum/viewtopic.php";
   }
 
+  static Future<PageProvider> create({
+    required SimpleProxyProvider proxyProvider,
+  }) async {
+    return PageProvider._create(
+      (await proxyProvider.getProxy()).createIOClient(),
+      proxyProvider,
+    );
+  }
+
   Future<bool> login(String username, String password) async {
-    await client
-        .post(Uri.parse(_loginURL),
-            body: {
-              "login_username": username,
-              "login_password": password,
-              "login": "Вход"
-            },
-            encoding: utf8)
-        .then((response) {
-      if (response.statusCode == 302) {
-        cookie = response.headers['set-cookie'].toString();
-        cookie = cookie.substring(
-          cookie.indexOf('bb_session'),
-          cookie.lastIndexOf('expires'),
-        );
-        authorized = true;
-        StorageManager.saveData('cookies', cookie);
-      } else {
-        throw Exception("Ошибка авторизации = ${response.statusCode}");
-      }
-    });
+    Response response = await client.post(
+      Uri.parse(_loginURL),
+      body: {
+        "login_username": username,
+        "login_password": password,
+        "login": "Вход"
+      },
+      encoding: utf8,
+    );
+    if (response.statusCode == 302) {
+      cookie = response.headers['set-cookie'].toString();
+      cookie = cookie.substring(
+        cookie.indexOf('bb_session'),
+        cookie.lastIndexOf('expires'),
+      );
+      authorized = true;
+      log(response.reasonPhrase.toString());
+      StorageManager.saveData('cookies', cookie);
+    } else {
+      throw Exception("Ошибка авторизации = ${response.statusCode}");
+    }
     return true;
   }
 
@@ -63,32 +67,31 @@ class PageProvider {
     } else {
       var response = await client.post(Uri.parse(_searchURL), body: {
         "nm": query,
-        "o": "10",
+        'o': '10',
         'f': categories,
       }, headers: {
         "Cookie": cookie
       });
-      log(response.statusCode.toString());
       return response;
     }
   }
 
-  downloadTorrent(String link, String directory) async {
+  Future<File> downloadTorrent(String link, String directory) async {
     var applicationDirectory = await getApplicationDocumentsDirectory();
-    final directory = Directory('${applicationDirectory.path}/torrents/');
+    final directory = Directory('${applicationDirectory.path}/torrents');
     var response = await client.get(
       Uri.parse('https://rutracker.org/forum/dl.php?t=$link'),
       headers: {'Cookie': cookie},
     );
     File torrentFile = File('${directory.path}/$link.torrent');
-    torrentFile.writeAsBytes(response.bodyBytes);
+    return torrentFile.writeAsBytes(response.bodyBytes);
   }
 
   page(String link) async {
     if (!authorized) {
       throw Exception("Ошибка авторизации");
     } else {
-      var url = Uri.parse(_threadURL + "?t=$link");
+      var url = Uri.parse("$_threadURL?t=$link");
       var response = await client.get(url, headers: {"Cookie": cookie});
       return response;
     }
@@ -96,22 +99,23 @@ class PageProvider {
 
   restoreCookies(String cookies) async {
     try {
+      cookies = cookies.substring(1, cookies.length - 1).trim();
       if (cookies.isNotEmpty) {
         var response = await client.get(
           Uri.parse(_searchURL),
           headers: {"Cookie": cookies},
         );
-        if (!response.headers.keys.contains("redirect")) {
+        if (response.body.contains('logged-in-username')) {
           cookie = cookies;
           authorized = true;
           return true;
         }
       }
+      return false;
     } on SocketException {
       return true;
     } catch (_) {
-      return false;
+      throw Exception('Ошибка восстановления данных входа');
     }
-    return false;
   }
 }

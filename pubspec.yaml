@@ -14,7 +14,6 @@ dependencies:
   cached_network_image: ^3.2.0
   dartorrent_common: ^1.0.3
   equatable: ^2.0.5
-  floating_bottom_navigation_bar: ^1.5.2
   flutter_bloc: ^8.1.1
   html: ^0.15.0
   http: ^0.13.4
@@ -25,7 +24,6 @@ dependencies:
   provider: ^6.0.3
   proxies: ^0.2.0
   shared_preferences: ^2.0.11
-  shimmer: ^2.0.0
   sqflite: ^2.0.1
   torrent_task: ^0.3.0
 
@@ -46,6 +44,8 @@ flutter:
     - assets/
 
   fonts:
-    - family: Gotham
+    - family: Product-Sans
       fonts:
-        - asset: assets/GothamPro-Light.ttf
+        - asset: assets/Product Sans Regular.ttf
+        - asset: assets/Product Sans Italic.ttf
+          style: italic

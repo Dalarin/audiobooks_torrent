@@ -1,22 +1,23 @@
-import 'dart:convert';
 
-class Torrent {
+class QueryResponse {
   String forum;
   String theme;
   String size;
   String link;
-  Torrent(
-      {required this.forum,
-      required this.theme,
-      required this.size,
-      required this.link});
+
+  QueryResponse({
+    required this.forum,
+    required this.theme,
+    required this.size,
+    required this.link,
+  });
 
   @override
   String toString() {
     return 'Forum $forum\nTheme $theme\nSize $size\nLink $link';
   }
 
-  static Map<String, dynamic> toMap(Torrent book) {
+  static Map<String, dynamic> toMap(QueryResponse book) {
     return {
       'forum': book.forum,
       'theme': book.theme,
@@ -25,8 +26,8 @@ class Torrent {
     };
   }
 
-  factory Torrent.fromMap(Map<String, dynamic> map) {
-    return Torrent(
+  factory QueryResponse.fromMap(Map<String, dynamic> map) {
+    return QueryResponse(
       forum: map['forum'] ?? '',
       theme: map['theme'] ?? '',
       size: map['size'] ?? '',
@@ -34,19 +35,11 @@ class Torrent {
     );
   }
 
-  static String encode(List<Torrent> torrents) =>
-      json.encode(torrents.map((torrent) => Torrent.toMap(torrent)).toList());
-
-  static List<Torrent> decode(String books) =>
-      (json.decode(books) as List<dynamic>)
-          .map<Torrent>((item) => Torrent.fromMap(item))
-          .toList();
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is Torrent && other.link == link;
+    return other is QueryResponse && other.link == link;
   }
 
   @override

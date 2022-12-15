@@ -1,14 +1,14 @@
 // ignore_for_file: camel_case_types, void_checks, import_of_legacy_library_into_null_safe, must_be_immutable
 
-import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
 import 'package:rutracker_app/pages/authentication_page.dart';
 import 'package:rutracker_app/pages/favorite_page.dart';
 import 'package:rutracker_app/pages/home_page.dart';
-import 'package:rutracker_app/pages/search.dart';
-import 'package:rutracker_app/providers/themeManager.dart';
+import 'package:rutracker_app/pages/search_page.dart';
+import 'package:rutracker_app/pages/settings_page.dart';
+import 'package:rutracker_app/providers/theme_manager.dart';
 
 import 'bloc/authentication_bloc/authentication_bloc.dart';
 
@@ -34,7 +34,7 @@ class Home extends StatelessWidget {
     return Consumer<ThemeNotifier>(
       builder: (context, theme, _) {
         return MaterialApp(
-          themeMode: ThemeMode.system,
+          themeMode: ThemeMode.light,
           theme: theme.lightTheme,
           darkTheme: theme.darkTheme,
           title: 'Аудиокниги - Торрент',
@@ -51,7 +51,7 @@ class BottomNavBar extends StatefulWidget {
   BottomNavBar({Key? key, required this.authenticationBloc}) : super(key: key);
 
   @override
-  _BottomNavBarState createState() => _BottomNavBarState();
+  State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
@@ -64,18 +64,17 @@ class _BottomNavBarState extends State<BottomNavBar> {
       HomePage(authenticationBloc: widget.authenticationBloc),
       SearchPage(authenticationBloc: widget.authenticationBloc),
       FavoritePage(authenticationBloc: widget.authenticationBloc),
+      SettingsPage(authenticationBloc: widget.authenticationBloc),
     ]);
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBody: true,
       body: _children[_currentIndex],
-      bottomNavigationBar: bottomNavigationBar(),
+      bottomNavigationBar: _navigationBar(),
     );
   }
 
@@ -85,22 +84,18 @@ class _BottomNavBarState extends State<BottomNavBar> {
     });
   }
 
-  Widget bottomNavigationBar() {
-    return FloatingNavbar(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 25),
-      borderRadius: 15.0,
-      currentIndex: _currentIndex,
-      backgroundColor: Theme.of(context).bottomAppBarColor,
-      elevation: 75.0,
-      selectedItemColor: Theme.of(context).toggleableActiveColor,
-      unselectedItemColor: Colors.grey[500],
-      selectedBackgroundColor: Colors.transparent,
-      items: [
-        FloatingNavbarItem(icon: Icons.collections_bookmark),
-        FloatingNavbarItem(icon: Icons.search),
-        FloatingNavbarItem(icon: Icons.favorite),
+  Widget _navigationBar() {
+    return NavigationBar(
+      onDestinationSelected: onTap,
+      selectedIndex: _currentIndex,
+      animationDuration: const Duration(seconds: 2),
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Дом'),
+        NavigationDestination(icon: Icon(Icons.search), label: 'Поиск'),
+        NavigationDestination(icon: Icon(Icons.favorite), label: 'Избранное'),
+        NavigationDestination(icon: Icon(Icons.settings), label: 'Настройки'),
       ],
-      onTap: onTap,
     );
   }
+
 }

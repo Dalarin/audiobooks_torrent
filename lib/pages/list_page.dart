@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
@@ -8,8 +9,9 @@ import '../bloc/book_bloc/book_bloc.dart';
 
 class ListPage extends StatelessWidget {
   final BookList list;
+  final AuthenticationBloc authenticationBloc;
 
-  const ListPage({Key? key, required this.list}) : super(key: key);
+  const ListPage({Key? key, required this.list, required this.authenticationBloc}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class ListPage extends StatelessWidget {
 
   AppBar _listPageAppBar(BuildContext context, BookList bookList) {
     return AppBar(
-      title: Text(bookList.name),
+      title: Text(bookList.title),
       centerTitle: true,
       titleTextStyle: const TextStyle(
         fontWeight: FontWeight.bold,
@@ -69,6 +71,7 @@ class ListPage extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemBuilder: (context, index) {
           return BookElement(
+            authenticationBloc: authenticationBloc,
             books: books,
             book: books[index],
           );

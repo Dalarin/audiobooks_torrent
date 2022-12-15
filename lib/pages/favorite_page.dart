@@ -6,6 +6,7 @@ import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/repository/list_repository.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
+import 'package:rutracker_app/rutracker/providers/enums.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
 import '../bloc/list_bloc/list_bloc.dart';
@@ -13,15 +14,13 @@ import '../bloc/list_bloc/list_bloc.dart';
 class FavoritePage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
 
-  const FavoritePage({Key? key, required this.authenticationBloc})
-      : super(key: key);
+  const FavoritePage({Key? key, required this.authenticationBloc}) : super(key: key);
 
   @override
   State<FavoritePage> createState() => _FavoritePageState();
 }
 
-class _FavoritePageState extends State<FavoritePage>
-    with TickerProviderStateMixin {
+class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMixin {
   late TabController tabController;
 
   @override
@@ -32,47 +31,32 @@ class _FavoritePageState extends State<FavoritePage>
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<BookBloc>(
-          create: (context) {
-            return BookBloc(repository: BookRepository());
-          },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Избранное'),
+        bottom: TabBar(
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+          ),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+          controller: tabController,
+          tabs: const [
+            Tab(text: 'Избранное'),
+            Tab(text: 'Списки'),
+          ],
         ),
-        BlocProvider(
-          create: (context) {
-            return ListBloc(repository: ListRepository());
-          },
-        ),
-      ],
-      child: Builder(
-        builder: (context) {
-          return Scaffold(
-            extendBody: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 15,
-                ),
-                child: Flex(
-                  direction: Axis.vertical,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        child: _favoritePageContent(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 15,
             ),
-          );
-        },
+            child: _favoritePageContent(context),
+          ),
+        ),
       ),
     );
   }
@@ -80,31 +64,13 @@ class _FavoritePageState extends State<FavoritePage>
   Widget _favoritePageContent(BuildContext context) {
     return Column(
       children: [
-        TabBar(
-          controller: tabController,
-          indicatorColor: Colors.transparent,
-          unselectedLabelColor: Colors.grey,
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          labelColor: Theme.of(context).primaryColor,
-          tabs: const [
-            Tab(text: 'Избранное'),
-            Tab(text: 'Списки'),
-          ],
-        ),
         SizedBox(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height * 0.85,
           child: TabBarView(
             controller: tabController,
             children: [
-              _favoriteTab(context),
+              _favoriteTab(context, widget.authenticationBloc),
               _listTab(context),
             ],
           ),
@@ -119,7 +85,7 @@ class _FavoritePageState extends State<FavoritePage>
     required List<Widget> children,
   }) {
     return InkWell(
-      onTap: () => function,
+      onTap: () => function(context),
       child: SizedBox(
         height: 50,
         width: MediaQuery.of(context).size.width * 0.5 - 15,
@@ -131,7 +97,27 @@ class _FavoritePageState extends State<FavoritePage>
     );
   }
 
-  Widget _favoriteActionBar(BuildContext context) {
+  void _showSortDialog(BuildContext context, SORT sort) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Сортировка'),
+          content: const Text('dialogBody'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('buttonText'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Dismiss alert dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _favoriteActionBar(BuildContext context, SORT sort) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 55,
@@ -141,15 +127,17 @@ class _FavoritePageState extends State<FavoritePage>
         children: [
           _action(
             context: context,
-            function: (context) {},
-            children: const [
-              Text(
+            function: (context) {
+              _showSortDialog(context, sort);
+            },
+            children: [
+              const Text(
                 'Сортировать',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text('По умолчанию'),
+              Text(sort.text),
             ],
           ),
           _action(
@@ -170,36 +158,35 @@ class _FavoritePageState extends State<FavoritePage>
   }
 
   Widget _emptyListWidget(BuildContext context, String text) {
-    return Material(
-      elevation: 5.0,
-      borderRadius: const BorderRadius.all(
-        Radius.circular(10.0),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        height: 80,
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16),
-        ),
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 80,
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }
 
   Widget _bookList(BuildContext context, List<Book> books) {
     if (books.isNotEmpty) {
-      return ListView.builder(
-        shrinkWrap: true,
-        itemCount: books.length,
-        physics: const BouncingScrollPhysics(),
-        itemBuilder: (context, index) {
-          return BookElement(
-            books: books,
-            book: books[index],
-          );
-        },
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.68,
+        child: ListView.separated(
+          itemCount: books.length,
+          separatorBuilder: (context, index) {
+            return const SizedBox(height: 10);
+          },
+          itemBuilder: (context, index) {
+            return BookElement(
+              authenticationBloc: widget.authenticationBloc,
+              books: books,
+              book: books[index],
+            );
+          },
+        ),
       );
     }
     return _emptyListWidget(
@@ -209,44 +196,66 @@ class _FavoritePageState extends State<FavoritePage>
   }
 
   Widget _favoriteBooksListBuilder(BuildContext context) {
-    return BlocConsumer<BookBloc, BookState>(
-      bloc: context.read<BookBloc>()..add(GetFavoritesBooks()),
-      listener: (context, state) {
-        if (state is BookError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message,
-              ),
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
-        if (state is BookLoaded) {
-          return _bookList(context, state.books);
-        } else if (state is BookLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        return _bookList(context, []);
-      },
+    final bloc = context.read<BookBloc>();
+    return Expanded(
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: BlocConsumer<BookBloc, BookState>(
+          bloc: bloc..add(const GetFavoritesBooks(sortOrder: SORT.STANDART)),
+          listener: (context, state) {
+            if (state is BookError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.message,
+                  ),
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is BookLoaded) {
+              return _bookList(context, state.books);
+            } else if (state is BookLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            return _bookList(context, []);
+          },
+        ),
+      ),
     );
   }
 
-  Widget _favoriteTab(BuildContext context) {
-    return Column(
-      children: [
-        _favoriteActionBar(context),
-        _favoriteBooksListBuilder(context),
-      ],
+  Widget _favoriteTab(
+    BuildContext context,
+    AuthenticationBloc authenticationBloc,
+  ) {
+    return BlocProvider<BookBloc>(
+      create: (_) {
+        return BookBloc(
+          repository: BookRepository(
+            api: authenticationBloc.rutrackerApi,
+          ),
+        );
+      },
+      child: Builder(
+        builder: (builderContext) {
+          return Column(
+            children: [
+              _favoriteActionBar(builderContext, SORT.STANDART),
+              _favoriteBooksListBuilder(builderContext),
+            ],
+          );
+        },
+      ),
     );
   }
 
   Widget _listElement(BookList bookList) {
     return ListTile(
-      title: Text(bookList.name),
+      title: Text(bookList.title),
       subtitle: Text(
         bookList.description,
         maxLines: 3,
@@ -286,35 +295,28 @@ class _FavoritePageState extends State<FavoritePage>
   }
 
   Widget _addListButton(BuildContext context) {
-    return InkWell(
-      onTap: () {
+    return ElevatedButton(
+      onPressed: () {
         // TODO : ПОКАЗАТЬ ОКНО СОЗДАНИЯ СПИСКА
       },
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        alignment: Alignment.center,
-        height: 80,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(10),
-          ),
-        ),
-        child: const Text(
-          'Создать новый список',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+      child: const Text('Создать новый список'),
     );
   }
 
   Widget _listTab(BuildContext context) {
-    return Column(
-      children: [
-        _listOfBooksListBuilder(context),
-        const SizedBox(height: 15),
-        _addListButton(context),
-      ],
+    return BlocProvider<ListBloc>(
+      create: (context) => ListBloc(
+        repository: ListRepository(),
+      ),
+      child: Builder(builder: (context) {
+        return Column(
+          children: [
+            _listOfBooksListBuilder(context),
+            const SizedBox(height: 15),
+            _addListButton(context),
+          ],
+        );
+      }),
     );
   }
 }

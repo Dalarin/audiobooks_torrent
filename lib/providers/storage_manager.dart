@@ -13,10 +13,15 @@ class StorageManager {
     if (value is int) {
       prefs.setInt(key, value);
     } else if (value is String) {
-      prefs.setString(key, value);
+      prefs.setString(key, jsonEncode(value));
     } else if (value is bool) {
       prefs.setBool(key, value);
     }
+  }
+
+  static void saveProxy(Proxy proxy) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('proxy', jsonEncode(proxy.toJson()));
   }
 
   static Future<Proxy?> readProxy() async {

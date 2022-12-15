@@ -2,14 +2,14 @@ import 'book.dart';
 
 class BookList {
   int? id;
-  String name;
+  String title;
   String cover;
   String description;
   List<Book> books = [];
 
   BookList({
     this.id,
-    required this.name,
+    required this.title,
     required this.cover,
     required this.description,
     required this.books,
@@ -17,8 +17,8 @@ class BookList {
 
   factory BookList.fromJson(Map<String, dynamic> json) {
     return BookList(
-      id: int.parse(json["id"]),
-      name: json["name"],
+      id: json["id"],
+      title: json["title"],
       cover: json["cover"],
       description: json["description"],
       books: List.of(json["books"]).map((i) => Book.fromJson(i)).toList(),
@@ -28,7 +28,7 @@ class BookList {
   Map<String, dynamic> toJson() {
     return {
       "id": id,
-      "name": name,
+      "name": title,
       "cover": cover,
       "description": description,
       "books": books.map((e) => e.toJson()).toList(),
@@ -37,13 +37,13 @@ class BookList {
 
   BookList copyWith({
     int? id,
-    String? name,
+    String? title,
     String? cover,
     String? description,
     List<Book>? books,
   }) {
     return BookList(
-      name: name ?? this.name,
+      title: title ?? this.title,
       cover: cover ?? this.cover,
       description: description ?? this.description,
       books: books ?? this.books,

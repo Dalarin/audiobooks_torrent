@@ -4,7 +4,7 @@ import 'package:path/path.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
 import 'package:rutracker_app/rutracker/models/list.dart';
 import 'package:rutracker_app/rutracker/models/list_object.dart';
-import 'package:rutracker_app/rutracker/models/listeningInfo.dart';
+import 'package:rutracker_app/rutracker/models/listening_info.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
@@ -122,7 +122,7 @@ class DBHelper {
 
   Future<Book> createBook(Book book) async {
     final db = await instance.database;
-    final bookId = await db.insert('book', book.toJson());
+    final bookId = (await updateBook(book))!.id;
     await db.insert('listening_info', book.listeningInfo.toJson());
     return book.copyWith(
       id: bookId,
@@ -138,14 +138,14 @@ class DBHelper {
 
   Future<ListeningInfo> createListeningInfo(ListeningInfo listeningInfo) async {
     final db = await instance.database;
-    final id = await db.insert('listening_info', listeningInfo.toJson());
-    return listeningInfo.copyWith(bookID: id);
+    await db.insert('listening_info', listeningInfo.toJson());
+    return listeningInfo.copyWith(bookID: listeningInfo.bookID);
   }
 
   Future<ListObject> createListObject(ListObject listObject) async {
     final db = await instance.database;
     final id = await db.insert('list_object', listObject.toMap());
-    return listObject.copyWith(idBook: id);
+    return listObject.copyWith(idBook: listObject.idBook);
   }
 
   Future<BookList?> createList(BookList list) async {
@@ -157,7 +157,7 @@ class DBHelper {
   Future<Book?> readBook(int bookId) async {
     final db = await instance.database;
     final result = await db.query('book', where: 'id = ?', whereArgs: [bookId]);
-    return Book.fromJson(result.first);
+    return result.isNotEmpty ? Book.fromJson(result.first) : null;
   }
 
   Future<List<Book>?> readFavoriteBooks() async {
@@ -180,10 +180,14 @@ class DBHelper {
 
   Future<List<BookList>?> readLists() async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-      "SELECT * FROM 'list' INNER JOIN list_object on list_id=id",
-    );
-    return result.map((list) => BookList.fromJson(list)).toList();
+    final result = await db.rawQuery('SELECT * FROM list');
+    List<Map<String, dynamic>> res = List.from(result);
+    res = await Future.wait(res.map((element) async {
+      Map<String, dynamic> booksMap = Map.from(element);
+      booksMap['books'] = await (db.rawQuery("SELECT * FROM book INNER JOIN list_object on book.id=list_object.id_book WHERE list_object.id_list=${booksMap['id']}"));
+      return booksMap;
+    }).toList());
+    return res.map((element) => BookList.fromJson(element)).toList();
   }
 
   Future<bool> deleteList(int listId) async {
@@ -202,23 +206,24 @@ class DBHelper {
     return count > 0 ? list : null;
   }
 
-  Future<ListeningInfo?> updateListeningInfo(
-      ListeningInfo listeningInfo) async {
+  Future<ListeningInfo?> updateListeningInfo(ListeningInfo listeningInfo) async {
     final db = await instance.database;
-    int count = await db.update(
-      'listeningInfo',
-      listeningInfo.toJson(),
-      where: "bookID = ?",
-      whereArgs: [listeningInfo.bookID],
-    );
-    return count > 0 ? listeningInfo : null;
+    var count = await db.rawQuery("INSERT OR REPLACE INTO 'listening_info'(bookID, maxIndex, 'index', speed, position, isCompleted) VALUES(?,?,?,?,?,?)", [
+      listeningInfo.bookID,
+      listeningInfo.maxIndex,
+      listeningInfo.index,
+      listeningInfo.speed,
+      listeningInfo.position,
+      listeningInfo.isCompleted ? 1 : 0,
+    ]);
+    return count.isNotEmpty ? listeningInfo : null;
   }
 
   Future<Book?> updateBook(Book book) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
+    await db.rawQuery(
       "INSERT OR REPLACE INTO 'book'(id, title, release_year, author, genre, executor,"
-      "bitrate, image, size, series, description, book_number, isFavorite, isDownloaded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "bitrate, image, time, size, series, description, book_number, isFavorite, isDownloaded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         book.id,
         book.title,
@@ -228,6 +233,7 @@ class DBHelper {
         book.executor,
         book.bitrate,
         book.image,
+        book.time,
         book.size,
         book.series,
         book.description,
@@ -236,7 +242,8 @@ class DBHelper {
         book.isDownloaded ? 1 : 0,
       ],
     );
-    return Book.fromJson(result.first);
+    await updateListeningInfo(book.listeningInfo);
+    return book;
   }
 
   Future close() async {

@@ -6,43 +6,27 @@ import 'package:rutracker_app/rutracker/models/book.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
 import '../repository/book_repository.dart';
+import '../rutracker/providers/enums.dart';
 
 class HomePage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
 
-  const HomePage({Key? key, required this.authenticationBloc})
-      : super(key: key);
+  const HomePage({Key? key, required this.authenticationBloc}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<BookBloc>(
-      create: (context) => BookBloc(repository: BookRepository()),
-      child: Builder(
-        builder: (context) {
-          return Scaffold(
-            extendBody: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Flex(
-                  direction: Axis.vertical,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        primary: true,
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        child: _homePageContent(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Главная'),
+      ),
+      extendBody: true,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: SingleChildScrollView(
+            child: _homePageContent(context),
+          ),
+        ),
       ),
     );
   }
@@ -62,32 +46,30 @@ class HomePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(height: 25),
-        const Text(
-          'Главная',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
         const SizedBox(height: 15),
         _title('Недавно прослушанное'),
-        _listeningBooksListBuilder(context),
+        const SizedBox(height: 15),
+        _listeningBooksListBuilder(context, authenticationBloc),
         const SizedBox(height: 15),
         _title('Избранное'),
         const SizedBox(height: 15),
-        _favoriteBooksListBuilder(context),
+        _favoriteBooksListBuilder(context, authenticationBloc),
       ],
     );
   }
 
   Widget _bookList(BuildContext context, List<Book> books) {
     if (books.isNotEmpty) {
-      return ListView.builder(
+      return ListView.separated(
+        shrinkWrap: true,
         itemCount: books.length,
         physics: const BouncingScrollPhysics(),
+        separatorBuilder: (context, index) {
+          return const SizedBox(height: 15);
+        },
         itemBuilder: (context, index) {
           return BookElement(
+            authenticationBloc: authenticationBloc,
             books: books,
             book: books[index],
           );
@@ -100,75 +82,103 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _listeningBooksListBuilder(BuildContext context) {
-    return BlocConsumer<BookBloc, BookState>(
-      bloc: context.read<BookBloc>()..add(GetDownloadedBooks()),
-      listener: (context, state) {
-        if (state is BookError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message,
-              ),
-            ),
-          );
-        }
+  Widget _listeningBooksListBuilder(
+    BuildContext context,
+    AuthenticationBloc authenticationBloc,
+  ) {
+    return BlocProvider<BookBloc>(
+      create: (context) {
+        return BookBloc(
+          repository: BookRepository(api: authenticationBloc.rutrackerApi),
+        );
       },
-      builder: (context, state) {
-        if (state is BookLoaded) {
-          return _bookList(context, state.books);
-        } else if (state is BookLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+      child: Builder(
+        builder: (context) {
+          return BlocConsumer<BookBloc, BookState>(
+            bloc: context.read<BookBloc>()..add(GetDownloadedBooks()),
+            listener: (context, state) {
+              if (state is BookError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      state.message,
+                    ),
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is BookLoaded) {
+                return _bookList(context, state.books);
+              } else if (state is BookLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              return _bookList(context, []);
+            },
           );
-        }
-        return _bookList(context, []);
-      },
+        },
+      ),
     );
   }
 
-  Widget _favoriteBooksListBuilder(BuildContext context) {
-    return BlocConsumer<BookBloc, BookState>(
-      bloc: context.read<BookBloc>()..add(GetFavoritesBooks()),
-      listener: (context, state) {
-        if (state is BookError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message,
-              ),
-            ),
-          );
-        }
+  Widget _favoriteBooksListBuilder(
+    BuildContext context,
+    AuthenticationBloc authenticationBloc,
+  ) {
+    return BlocProvider<BookBloc>(
+      create: (context) {
+        return BookBloc(
+          repository: BookRepository(
+            api: authenticationBloc.rutrackerApi,
+          ),
+        );
       },
-      builder: (context, state) {
-        if (state is BookLoaded) {
-          return _bookList(context, state.books);
-        } else if (state is BookLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+      child: Builder(
+        builder: (context) {
+          return BlocConsumer<BookBloc, BookState>(
+            bloc: context.read<BookBloc>()
+              ..add(const GetFavoritesBooks(
+                sortOrder: SORT.STANDART,
+              )),
+            listener: (context, state) {
+              if (state is BookError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      state.message,
+                    ),
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is BookLoaded) {
+                return _bookList(context, state.books);
+              } else if (state is BookLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return _bookList(context, []);
+              }
+            },
           );
-        }
-        return _bookList(context, []);
-      },
+        },
+      ),
     );
   }
 
   Widget _emptyListWidget(BuildContext context, String text) {
-    return Material(
-      elevation: 5.0,
-      borderRadius: const BorderRadius.all(
-        Radius.circular(20.0),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        height: 80,
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16),
-        ),
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 80,
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }

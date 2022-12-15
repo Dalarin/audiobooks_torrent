@@ -1,9 +1,9 @@
 // ignore_for_file: camel_case_extensions
 
 extension genres on Genres {
-  int get value {
+  Object get value {
     switch (this) {
-      case Genres.radioPerfomances:
+      case Genres.radioAppearances:
         return 574;
       case Genres.biography:
         return 1036;
@@ -21,12 +21,14 @@ extension genres on Genres {
         return 2137;
       case Genres.educationalLiterature:
         return 403;
+      case Genres.all:
+        return '1036,1279,1350,2127,2137,2152,2165,2324,2325,2326,2327,2328,2342,2348,2387,2388,2389,399,400,401,402,403,467,490,499,530,574,661,695,716';
     }
   }
 
   String get name {
     switch (this) {
-      case Genres.radioPerfomances:
+      case Genres.radioAppearances:
         return "Радио выступления";
       case Genres.biography:
         return "Биография";
@@ -44,12 +46,14 @@ extension genres on Genres {
         return "Русские детективы";
       case Genres.educationalLiterature:
         return "Образовательная литература";
+      case Genres.all:
+        return 'Все';
     }
   }
 }
 
 enum Genres {
-  radioPerfomances,
+  radioAppearances,
   biography,
   history,
   foreignFantasy,
@@ -58,4 +62,29 @@ enum Genres {
   foreignDetectives,
   russianDetectives,
   educationalLiterature,
+  all
 }
+
+extension sort on SORT {
+  String get text {
+    switch (this) {
+      case SORT.AUTHOR:
+        return 'По автору';
+      case SORT.STANDART:
+        return 'По умолчанию';
+      case SORT.TITLE:
+        return 'По названию';
+      case SORT.EXECUTOR:
+        return 'По исполнителю';
+    }
+  }
+}
+
+enum SORT {
+  STANDART,
+  AUTHOR,
+  TITLE,
+  EXECUTOR
+}
+
+

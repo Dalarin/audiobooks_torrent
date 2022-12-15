@@ -1,4 +1,4 @@
-import 'package:rutracker_app/rutracker/models/listeningInfo.dart';
+import 'package:rutracker_app/rutracker/models/listening_info.dart';
 
 class Book {
   int id;
@@ -37,12 +37,11 @@ class Book {
     required this.listeningInfo,
   });
 
-
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      id: int.parse(json["id"]),
+      id: json["id"],
       title: json["title"],
-      releaseYear: json["releaseYear"],
+      releaseYear: json["release_year"],
       author: json["author"],
       genre: json["genre"],
       executor: json["executor"],
@@ -52,10 +51,10 @@ class Book {
       size: json["size"],
       series: json["series"],
       description: json["description"],
-      bookNumber: json["bookNumber"],
-      isFavorite: json["isFavorite"].toLowerCase() == 'true',
-      isDownloaded: json["isDownloaded"].toLowerCase() == 'true',
-      listeningInfo: ListeningInfo.fromJson(json["listeningInfo"])
+      bookNumber: json["book_number"],
+      isFavorite: json["isFavorite"] == 1,
+      isDownloaded: json["isDownloaded"] == 1,
+      listeningInfo: ListeningInfo.fromJson(json),
     );
   }
 
@@ -63,7 +62,7 @@ class Book {
     return {
       "id": id,
       "title": title,
-      "releaseYear": releaseYear,
+      "release_year": releaseYear,
       "author": author,
       "genre": genre,
       "executor": executor,
@@ -73,9 +72,9 @@ class Book {
       "size": size,
       "series": series,
       "description": description,
-      "bookNumber": bookNumber,
-      "isFavorite": isFavorite,
-      "isDownloaded": isDownloaded,
+      "book_number": bookNumber,
+      "isFavorite": isFavorite ? 1 : 0,
+      "isDownloaded": isDownloaded ? 1 : 0,
       "listeningInfo": listeningInfo.toJson(),
     };
   }
@@ -119,7 +118,15 @@ class Book {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Book && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
   String toString() {
-    return 'Book(id: $id, title: $title, releaseYear: $releaseYear, author: $author, genre: $genre, executor: $executor, bitrate: $bitrate, image: $image, time: $time, size: $size, series: $series, description: $description, bookNumber: $bookNumber, isFavorited: $isFavorite, isDownloaded: $isDownloaded, listeningInfo: $listeningInfo)';
+    return 'Book(id: $id, title: $title, releaseYear: $releaseYear, author: $author, genre: $genre, executor: $executor, bitrate: $bitrate, image: $image, time: $time, size: $size, series: $series, bookNumber: $bookNumber, isFavorited: $isFavorite, isDownloaded: $isDownloaded, listeningInfo: $listeningInfo)';
   }
 }

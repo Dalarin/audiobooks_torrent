@@ -17,12 +17,12 @@ class ListeningInfo {
 
   factory ListeningInfo.fromJson(Map<String, dynamic> json) {
     return ListeningInfo(
-      bookID: int.parse(json["bookID"]),
-      maxIndex: int.parse(json["maxIndex"]),
-      index: int.parse(json["index"]),
-      position: int.parse(json["position"]),
-      speed: double.parse(json["speed"]),
-      isCompleted: json["isCompleted"].toLowerCase() == 'true',
+      bookID: json["bookID"],
+      maxIndex: json["maxIndex"],
+      index: json["index"],
+      position: json["position"],
+      speed: json["speed"],
+      isCompleted: json["isCompleted"] == 1,
     );
   }
 
@@ -30,20 +30,21 @@ class ListeningInfo {
     return {
       "bookID": bookID,
       "maxIndex": maxIndex,
-      "index": index,
+      "'index'": index,
       "position": position,
       "speed": speed,
-      "isCompleted": isCompleted,
+      "isCompleted": isCompleted ? 1 : 0,
     };
   }
 
-  ListeningInfo copyWith(
-      {required int bookID,
-      int? maxIndex,
-      int? index,
-      bool? isCompleted,
-      int? position,
-      double? speed}) {
+  ListeningInfo copyWith({
+    required int bookID,
+    int? maxIndex,
+    int? index,
+    bool? isCompleted,
+    int? position,
+    double? speed,
+  }) {
     return ListeningInfo(
       bookID: bookID,
       maxIndex: maxIndex ?? this.maxIndex,
@@ -52,5 +53,10 @@ class ListeningInfo {
       speed: speed ?? this.speed,
       isCompleted: isCompleted ?? this.isCompleted,
     );
+  }
+
+  @override
+  String toString() {
+    return 'ListeningInfo{bookID: $bookID, maxIndex: $maxIndex, index: $index, position: $position, speed: $speed, isCompleted: $isCompleted}';
   }
 }

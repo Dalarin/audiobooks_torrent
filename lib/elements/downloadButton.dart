@@ -7,10 +7,10 @@
 // import 'package:flutter/material.dart';
 // import 'package:path_provider/path_provider.dart';
 // import 'package:percent_indicator/linear_percent_indicator.dart';
-// import 'package:rutracker_app/pages/audio.dart';
+// import 'package:rutracker_app/pages/audio_page.dart';
 // import 'package:rutracker_app/providers/database.dart';
-// import 'package:rutracker_app/providers/torrent.dart';
-// import 'package:rutracker_app/rutracker/models/book.dart';
+// import 'package:rutracker_app/providers/query_response.dart';
+// import 'package:rutracker_app/rutracker/models/book_page.dart';
 // import 'package:rutracker_app/rutracker/rutracker.dart';
 //
 // class DownloadButton extends StatefulWidget {

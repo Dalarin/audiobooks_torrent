@@ -9,11 +9,14 @@ abstract class SearchState extends Equatable {
 
 class SearchInitial extends SearchState {}
 
+class SearchLoading extends SearchState {}
+
 class SearchLoaded extends SearchState {
-  final List<Torrent> queryResponse;
+  final List<QueryResponse> queryResponse;
 
   const SearchLoaded({required this.queryResponse});
 }
+
 
 class SearchError extends SearchState {
   final String message;

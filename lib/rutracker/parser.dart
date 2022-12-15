@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:rutracker_app/rutracker/models/book.dart';
-import 'package:rutracker_app/rutracker/models/listeningInfo.dart';
-import 'package:rutracker_app/rutracker/models/torrent.dart';
+import 'package:rutracker_app/rutracker/models/listening_info.dart';
+import 'package:rutracker_app/rutracker/models/query_response.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
 
 class Parser {
@@ -26,27 +26,31 @@ class Parser {
     return false;
   }
 
-  List<Torrent> parseQuery(Document document) {
-    List<Torrent> torrents = [];
+  List<QueryResponse> parseQuery(Document document) {
+    List<QueryResponse> response = [];
     var tracks = document
         .getElementsByTagName("#tor-tbl tbody")[0]
         .getElementsByTagName("tr");
     for (int i = 0; i < tracks.length; i++) {
       var documents = tracks[i].getElementsByTagName("td");
       if (documents.length > 1) {
-        torrents.add(Torrent(
+        response.add(
+          QueryResponse(
             forum: documents[2].text.trim(),
             theme: documents[3].text.trim(),
             size: documents[5].text.trim(),
             link: documents[3]
-                .getElementsByTagName('a')[0]
+                .getElementsByTagName('a')
+                .first
                 .attributes['data-topic_id']
-                .toString()));
+                .toString(),
+          ),
+        );
       } else {
         throw Exception("Не найдено");
       }
     }
-    return torrents;
+    return response;
   }
 
   List<String> _getTitle(String text) => text.split("Год");
@@ -62,9 +66,7 @@ class Parser {
   String _getAuthor(List<String> list) {
     try {
       return contains(list, "Имя")
-          ? list[findQuery("Имя автора", list)].split(":")[1].trim() +
-              " " +
-              list[findQuery("Фамилия автора", list)].split(":")[1].trim()
+          ? "${list[findQuery("Имя автора", list)].split(":")[1].trim()} ${list[findQuery("Фамилия автора", list)].split(":")[1].trim()}"
           : list[findQuery("Автор", list)].trim().split(":")[1];
     } catch (_) {
       return 'Не найдено';
@@ -119,6 +121,7 @@ class Parser {
     } catch (E) {
       log("Image not loaded");
     }
+    return null;
   }
 
   String _getSeries(List<String> list) {
@@ -176,7 +179,7 @@ class Parser {
     }
   }
 
-  Future<List<Book>> getSimilarBooks(
+  Future<List<Book?>> getSimilarBooks(
       Document document, RutrackerApi api) async {
     List<String> similarBook = similarBooks(document
         .getElementsByClassName("post_body")[0]
@@ -184,14 +187,14 @@ class Parser {
     similarBook.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
     int endIndex = similarBook.length >= 5 ? 5 : similarBook.length;
     similarBook = similarBook.sublist(0, endIndex).toSet().toList();
-    List<Book> books = [];
+    List<Book?> books = [];
     for (int i = 0; i < similarBook.length; i++) {
-      books.add(await api.openBook(similarBook[i]));
+      books.add(await api.parseBook(similarBook[i]));
     }
     return books;
   }
 
-  Book parseBook(Document document, String link) {
+  Book? parseBook(Document document, String link) {
     var doc =
         document.getElementsByClassName("post_wrap")[0].children[0].text.trim();
     var docs = _getTitle(doc)[1].toString().split("\n");
@@ -200,29 +203,30 @@ class Parser {
         docses.indexOf("Описание") + 9, docses.lastIndexOf('class="clear"')));
     var overview = _getOverview(documents);
     return Book(
-        series: _getSeries(docs),
-        bookNumber: _getBookNumber(docs),
-        size: _getSize(document),
-        id: int.parse(link),
-        genre: _getGenre(docs),
-        title: _getTitle(doc)[0].toString().replaceAll("\n", ""),
-        releaseYear: _getRelease(docs),
-        author: _getAuthor(docs),
-        executor: _getExecutor(docs),
-        bitrate: _getBitrate(docs),
-        image: _getImage(document) ?? " ",
-        time: _getTime(docs),
-        description:
-            overview.startsWith(':') ? overview.substring(1).trim() : overview,
-        listeningInfo: ListeningInfo(
-            bookID: int.parse(link),
-            maxIndex: 0,
-            isCompleted: false,
-            index: 0,
-            position: 0,
-            speed: 1.0),
-        isDownloaded: false,
-        isFavorite: false);
+      series: _getSeries(docs),
+      bookNumber: _getBookNumber(docs),
+      size: _getSize(document),
+      id: int.parse(link),
+      genre: _getGenre(docs),
+      title: _getTitle(doc)[0].toString().replaceAll("\n", ""),
+      releaseYear: _getRelease(docs),
+      author: _getAuthor(docs),
+      executor: _getExecutor(docs),
+      bitrate: _getBitrate(docs),
+      image: _getImage(document) ?? " ",
+      time: _getTime(docs),
+      description:
+          overview.startsWith(':') ? overview.substring(1).trim() : overview,
+      listeningInfo: ListeningInfo(
+          bookID: int.parse(link),
+          maxIndex: 0,
+          isCompleted: false,
+          index: 0,
+          position: 0,
+          speed: 1.0),
+      isDownloaded: false,
+      isFavorite: false,
+    );
   }
 }
 

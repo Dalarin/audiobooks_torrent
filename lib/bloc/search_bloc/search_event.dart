@@ -13,6 +13,7 @@ class Search extends SearchEvent {
   const Search({required this.query});
 }
 
+
 class SearchByGenre extends SearchEvent {
   final Genres genres;
 
