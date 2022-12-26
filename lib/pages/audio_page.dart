@@ -13,8 +13,13 @@ import '../rutracker/models/book.dart';
 
 class AudioPage extends StatelessWidget {
   final Book book;
+  final List<Book> books;
 
-  const AudioPage({Key? key, required this.book}) : super(key: key);
+  const AudioPage({
+    Key? key,
+    required this.book,
+    required this.books,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +27,7 @@ class AudioPage extends StatelessWidget {
       create: (context) {
         return AudioBloc(
           book: book,
+          books: books,
           bookBloc: context.read<BookBloc>(),
         )..add(InitializeAudio(book: book));
       },
@@ -40,6 +46,7 @@ class AudioPage extends StatelessWidget {
             } else if (state is AudioInitialized) {
               return _audioPageContent(
                 context: context,
+                books: books,
                 book: book,
                 audioPlayer: state.audioPlayer,
               );
@@ -79,6 +86,7 @@ class AudioPage extends StatelessWidget {
   Widget _audioPageContent({
     required BuildContext context,
     required Book book,
+    required List<Book> books,
     required AudioPlayer audioPlayer,
   }) {
     return SafeArea(
@@ -86,15 +94,20 @@ class AudioPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           _seekBar(context, audioPlayer),
-          _controlButtons(context, book, audioPlayer),
+          _controlButtons(context, book,books, audioPlayer),
         ],
       ),
     );
   }
 
-  Widget _controlButtons(BuildContext context, Book book, AudioPlayer player) {
+  Widget _controlButtons(
+    BuildContext context,
+    Book book,
+    List<Book> books,
+    AudioPlayer player,
+  ) {
     final bloc = context.read<AudioBloc>();
-    return ControlButtons(book, player, bloc);
+    return ControlButtons(book, player, bloc, books);
   }
 
   Widget _seekBar(BuildContext context, AudioPlayer player) {
@@ -126,9 +139,10 @@ class AudioPage extends StatelessWidget {
 class ControlButtons extends StatelessWidget {
   final AudioPlayer player;
   final Book book;
+  final List<Book> books;
   final AudioBloc audioBloc;
 
-  const ControlButtons(this.book, this.player, this.audioBloc, {Key? key}) : super(key: key);
+  const ControlButtons(this.book, this.player, this.audioBloc, this.books, {Key? key}) : super(key: key);
 
   void _selectChaptersDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
@@ -226,14 +240,14 @@ class ControlButtons extends StatelessWidget {
             } else {
               book.listeningInfo.isCompleted = true;
               final bloc = context.read<BookBloc>();
-              bloc.add(UpdateBook(book: book, books: []));
+              bloc.add(UpdateBook(book: book, books: books));
               return IconButton(
                 icon: const Icon(Icons.replay_circle_filled),
                 iconSize: 64.0,
                 onPressed: () {
                   player.seek(Duration.zero, index: player.effectiveIndices!.first);
                   book.listeningInfo.isCompleted = false;
-                  bloc.add(UpdateBook(book: book, books: []));
+                  bloc.add(UpdateBook(book: book, books: books));
                 },
               );
             }
@@ -265,7 +279,7 @@ class ControlButtons extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                showSliderDialog(
+                _selectAudioSpeedDialog(
                   context: context,
                   title: "Регулировка скорости",
                   divisions: 10,
@@ -368,7 +382,7 @@ class PositionData {
   PositionData(this.position, this.bufferedPosition, this.duration);
 }
 
-void showSliderDialog({
+void _selectAudioSpeedDialog({
   required BuildContext context,
   required String title,
   required int divisions,

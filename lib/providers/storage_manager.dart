@@ -2,8 +2,10 @@
 
 import 'dart:convert';
 
-import 'package:rutracker_app/rutracker/models/proxy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../rutracker/models/proxy.dart';
+
 
 class StorageManager {
   static bool similarBooks = false;
@@ -32,6 +34,17 @@ class StorageManager {
     } else {
       return null;
     }
+  }
+
+  static void saveSettings(Map<String, dynamic> map) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('settings', jsonEncode(map));
+  }
+
+  static Future<Map<String, dynamic>?> readSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? settingsString = prefs.getString('settings');
+    return settingsString != null ? jsonDecode(settingsString) : null;
   }
 
   static Future<dynamic> readData(String key) async {

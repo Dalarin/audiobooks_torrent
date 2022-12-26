@@ -26,6 +26,12 @@ dependencies:
   shared_preferences: ^2.0.11
   sqflite: ^2.0.1
   torrent_task: ^0.3.0
+  rutracker_api:
+    path: packages/rutracker_api
+
+  flutter_localizations:
+    sdk: flutter
+
 
 dependency_overrides:
   http: ^0.13.4

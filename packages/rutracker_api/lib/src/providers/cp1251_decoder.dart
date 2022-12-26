@@ -1,8 +1,6 @@
-// ignore_for_file: camel_case_types
-
 import 'dart:typed_data';
 
-class cp1251 {
+class Cp1251Decoder {
   static List characters = [
     '\u0000',
     '\u0001',
@@ -262,19 +260,13 @@ class cp1251 {
     '\u044F'
   ];
 
-  static String symbols =
-      "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
-
-  static String? decodeCp1251(String? body) {
-    if (body != null) {
-      Uint8List bytes = Uint8List.fromList(body.codeUnits);
+  String decode(List<int> codeUnits) {
+      Uint8List bytes = Uint8List.fromList(codeUnits);
       StringBuffer htmlBuffer = StringBuffer();
       for (int i = 0; i < bytes.length; i++) {
         htmlBuffer.write('${characters[bytes[i]]}');
       }
       return htmlBuffer.toString();
-    } else {
-      return null;
-    }
   }
+
 }

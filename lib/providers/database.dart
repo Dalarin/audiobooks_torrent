@@ -1,11 +1,14 @@
 import 'dart:developer';
 
 import 'package:path/path.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
-import 'package:rutracker_app/rutracker/models/list.dart';
-import 'package:rutracker_app/rutracker/models/list_object.dart';
-import 'package:rutracker_app/rutracker/models/listening_info.dart';
+import 'package:rutracker_app/rutracker/providers/enums.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../rutracker/models/book.dart';
+import '../rutracker/models/list.dart';
+import '../rutracker/models/list_object.dart';
+import '../rutracker/models/listening_info.dart';
+
 
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
@@ -55,7 +58,6 @@ class DBHelper {
     CREATE TABLE IF NOT EXISTS list(
       id $integerType PRIMARY KEY AUTOINCREMENT,
       title $textType,
-      cover $textType,
       description $textType
     )
     ''');
@@ -144,7 +146,7 @@ class DBHelper {
 
   Future<ListObject> createListObject(ListObject listObject) async {
     final db = await instance.database;
-    final id = await db.insert('list_object', listObject.toMap());
+    await db.insert('list_object', listObject.toMap());
     return listObject.copyWith(idBook: listObject.idBook);
   }
 
@@ -160,10 +162,10 @@ class DBHelper {
     return result.isNotEmpty ? Book.fromJson(result.first) : null;
   }
 
-  Future<List<Book>?> readFavoriteBooks() async {
+  Future<List<Book>?> readFavoriteBooks(SORT order) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isFavorite = ?",
+      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isFavorite = ? ${order.query}",
       [1],
     );
     return result.map((json) => Book.fromJson(json)).toList();

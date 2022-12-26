@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
+import 'package:rutracker_app/elements/create_list_dialog.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/repository/list_repository.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
-import 'package:rutracker_app/rutracker/models/list.dart';
 import 'package:rutracker_app/rutracker/providers/enums.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
 import '../bloc/list_bloc/list_bloc.dart';
+import '../rutracker/models/book.dart';
+import '../rutracker/models/list.dart';
 
 class FavoritePage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
@@ -22,6 +23,7 @@ class FavoritePage extends StatefulWidget {
 
 class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMixin {
   late TabController tabController;
+  SORT currentSort = SORT.standart;
 
   @override
   void initState() {
@@ -71,7 +73,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
             controller: tabController,
             children: [
               _favoriteTab(context, widget.authenticationBloc),
-              _listTab(context),
+              _listTab(),
             ],
           ),
         ),
@@ -97,21 +99,42 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
+  Widget _sortListTile(BuildContext context, SORT sort, StateSetter setter) {
+    return RadioListTile(
+      title: Text(sort.text),
+      value: sort.text,
+      groupValue: currentSort.text,
+      onChanged: (Object? value) {
+        setter.call(() {
+          currentSort = sort;
+          final bloc = context.read<BookBloc>();
+          bloc.add(GetFavoritesBooks(sortOrder: sort));
+        });
+      },
+    );
+  }
+
   void _showSortDialog(BuildContext context, SORT sort) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Сортировка'),
-          content: const Text('dialogBody'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('buttonText'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Dismiss alert dialog
+          content: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.35,
+            width: MediaQuery.of(context).size.width,
+            child: StatefulBuilder(
+              builder: (_, stateSetter) {
+                return ListView.separated(
+                  itemBuilder: (_, index) {
+                    return _sortListTile(context, SORT.values[index], stateSetter);
+                  },
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemCount: SORT.values.length,
+                );
               },
             ),
-          ],
+          ),
         );
       },
     );
@@ -199,9 +222,9 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     final bloc = context.read<BookBloc>();
     return Expanded(
       child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: BlocConsumer<BookBloc, BookState>(
-          bloc: bloc..add(const GetFavoritesBooks(sortOrder: SORT.STANDART)),
+          bloc: bloc..add(const GetFavoritesBooks(sortOrder: SORT.standart)),
           listener: (context, state) {
             if (state is BookError) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -244,7 +267,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         builder: (builderContext) {
           return Column(
             children: [
-              _favoriteActionBar(builderContext, SORT.STANDART),
+              _favoriteActionBar(builderContext, currentSort),
               _favoriteBooksListBuilder(builderContext),
             ],
           );
@@ -266,15 +289,25 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
 
   Widget _listList(BuildContext context, List<BookList> list) {
     if (list.isNotEmpty) {
-      return ListView.builder(
-        itemBuilder: (context, index) {
-          return _listElement(list[index]);
-        },
-        itemCount: list.length,
-        shrinkWrap: true,
+      return Column(
+        children: [
+          ListView.builder(
+            itemBuilder: (context, index) {
+              return _listElement(list[index]);
+            },
+            itemCount: list.length,
+            shrinkWrap: true,
+          ),
+          _addListButton(context, list),
+        ],
       );
     }
-    return _emptyListWidget(context, 'Отсутствуют созданные списки');
+    return Column(
+      children: [
+        _emptyListWidget(context, 'Отсутствуют созданные списки'),
+        _addListButton(context, []),
+      ],
+    );
   }
 
   Widget _listOfBooksListBuilder(BuildContext context) {
@@ -290,33 +323,45 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         }
         return _listList(context, []);
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is ListError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
+        }
+      },
     );
   }
 
-  Widget _addListButton(BuildContext context) {
+  Widget _addListButton(BuildContext context, List<BookList> list) {
     return ElevatedButton(
       onPressed: () {
-        // TODO : ПОКАЗАТЬ ОКНО СОЗДАНИЯ СПИСКА
+        showModalBottomSheet(
+          context: context,
+          builder: (_) {
+            return BlocProvider.value(
+              value: context.read<ListBloc>(),
+              child: CreateListDialog(lists: list),
+            );
+          },
+        );
       },
       child: const Text('Создать новый список'),
     );
   }
 
-  Widget _listTab(BuildContext context) {
+  Widget _listTab() {
     return BlocProvider<ListBloc>(
       create: (context) => ListBloc(
         repository: ListRepository(),
       ),
-      child: Builder(builder: (context) {
-        return Column(
-          children: [
-            _listOfBooksListBuilder(context),
-            const SizedBox(height: 15),
-            _addListButton(context),
-          ],
-        );
-      }),
+      child: Builder(
+        builder: (context) {
+          return _listOfBooksListBuilder(context);
+        },
+      ),
     );
   }
 }

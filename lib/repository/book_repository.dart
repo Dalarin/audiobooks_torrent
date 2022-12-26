@@ -1,3 +1,4 @@
+import 'package:rutracker_app/rutracker/providers/enums.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
 
 import '../providers/database.dart';
@@ -14,7 +15,7 @@ class BookRepository {
   Future<Book?> fetchBookFromSource(int bookId) =>
       api.parseBook(bookId.toString());
 
-  Future<List<Book>?> fetchFavoritesBooks() => _database.readFavoriteBooks();
+  Future<List<Book>?> fetchFavoritesBooks(SORT order) => _database.readFavoriteBooks(order);
 
   Future<Book?> fetchBook(int bookId) => _database.readBook(bookId);
 

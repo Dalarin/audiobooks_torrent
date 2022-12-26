@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
 import '../repository/book_repository.dart';
+import '../rutracker/models/book.dart';
 import '../rutracker/providers/enums.dart';
 
 class HomePage extends StatelessWidget {
@@ -140,7 +140,7 @@ class HomePage extends StatelessWidget {
           return BlocConsumer<BookBloc, BookState>(
             bloc: context.read<BookBloc>()
               ..add(const GetFavoritesBooks(
-                sortOrder: SORT.STANDART,
+                sortOrder: SORT.standart,
               )),
             listener: (context, state) {
               if (state is BookError) {

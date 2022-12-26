@@ -142,11 +142,11 @@ class SearchPage extends StatelessWidget {
         direction: Axis.horizontal,
         spacing: 10,
         children: [
-          _tag(context, Genres.foreignFantasy, setState),
+          _tag(context, Genres.foreignFantasy, setState),          _tag(context, Genres.history, setState),
+
           _tag(context, Genres.russianFantasy, setState),
           _tag(context, Genres.radioAppearances, setState),
           _tag(context, Genres.biography, setState),
-          _tag(context, Genres.history, setState),
           _tag(context, Genres.foreignLiterature, setState),
           _tag(context, Genres.foreignDetectives, setState),
           _tag(context, Genres.russianDetectives, setState),

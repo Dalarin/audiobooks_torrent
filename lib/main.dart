@@ -9,6 +9,7 @@ import 'package:rutracker_app/pages/home_page.dart';
 import 'package:rutracker_app/pages/search_page.dart';
 import 'package:rutracker_app/pages/settings_page.dart';
 import 'package:rutracker_app/providers/theme_manager.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'bloc/authentication_bloc/authentication_bloc.dart';
 
@@ -19,8 +20,8 @@ void main() async {
   );
   WidgetsFlutterBinding.ensureInitialized();
   return runApp(
-    ChangeNotifierProvider<ThemeNotifier>(
-      create: (_) => ThemeNotifier(),
+    ChangeNotifierProvider<SettingsNotifier>(
+      create: (_) => SettingsNotifier(),
       child: const Home(),
     ),
   );
@@ -31,12 +32,17 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, theme, _) {
+    return Consumer<SettingsNotifier>(
+      builder: (context, settings, _) {
         return MaterialApp(
-          themeMode: ThemeMode.light,
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
+          theme: settings.theme,
+          localizationsDelegates:  const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate
+          ],
+          supportedLocales: const [Locale('ru', 'RU'), Locale('en')],
+
           title: 'Аудиокниги - Торрент',
           home: const AuthenticationPage(),
         );

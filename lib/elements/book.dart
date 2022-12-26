@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/pages/book_page.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
+import '../rutracker/models/book.dart';
 
 class BookElement extends StatelessWidget {
   final Book book;
@@ -125,11 +125,11 @@ class BookElement extends StatelessWidget {
     required Function(BuildContext context) function,
   }) {
     return InkWell(
-      onTap: () => function,
+      onTap: () => function(context),
       child: Row(
         children: [
           icon,
-          const SizedBox(height: 15),
+          const SizedBox(width: 15),
           Text(title),
         ],
       ),
@@ -149,7 +149,7 @@ class BookElement extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          insetPadding:const EdgeInsets.all(10),
+          insetPadding: const EdgeInsets.all(10),
           title: const Text('Меню действий'),
           content: SizedBox(
             height: MediaQuery.of(context).size.height * 0.25,
@@ -159,15 +159,16 @@ class BookElement extends StatelessWidget {
                 _action(
                   context: context,
                   book: book,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.favorite,
-                    color: Colors.red,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   title: 'Удалить из избранного',
                   function: (context) {
                     book.isFavorite = !book.isFavorite;
                     final bloc = context.read<BookBloc>();
                     bloc.add(UpdateBook(book: book, books: books));
+                    Navigator.pop(context);
                   },
                 ),
                 const Divider(),
@@ -178,8 +179,10 @@ class BookElement extends StatelessWidget {
                   title: !book.listeningInfo.isCompleted ? 'Отметить прослушанным' : 'Отметить непрослушанным',
                   function: (context) {
                     // TODO: Отметить прослушанным
+                    book.listeningInfo.isCompleted = !book.listeningInfo.isCompleted;
                     final bloc = context.read<BookBloc>();
                     bloc.add(UpdateBook(book: book, books: books));
+                    Navigator.pop(context);
                   },
                 ),
                 const Divider(),
@@ -202,7 +205,7 @@ class BookElement extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) {
+                        builder: (_) {
                           return BlocProvider.value(
                             value: context.read<BookBloc>(),
                             child: BookPage(
@@ -224,7 +227,8 @@ class BookElement extends StatelessWidget {
     );
   }
 
-  double _percentValue({required double value}) {
+  double _percentValue({required double value, required Book book}) {
+    if (book.listeningInfo.isCompleted) return 1.0;
     return value.isNaN || value.isInfinite ? 0 : value;
   }
 
@@ -253,13 +257,14 @@ class BookElement extends StatelessWidget {
   }
 
   Widget _progressIndication(BuildContext context, Book book) {
-    if (book.listeningInfo.maxIndex != 0) {
+    if (book.listeningInfo.maxIndex != 0 || book.listeningInfo.isCompleted) {
       return CircularPercentIndicator(
-        progressColor: book.listeningInfo.isCompleted ? const Color(0xFF00C400) : const Color(0xFF4A73E7),
+        progressColor: book.listeningInfo.isCompleted ? const Color(0xFF00C400) : Theme.of(context).colorScheme.primary,
         animation: true,
         radius: 15.0,
         percent: _percentValue(
           value: book.listeningInfo.index / book.listeningInfo.maxIndex,
+          book: book
         ),
       );
     }

@@ -10,8 +10,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
+import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 
+import '../../rutracker/models/book.dart';
 import '../book_bloc/book_bloc.dart';
 
 part 'audio_event.dart';
@@ -21,11 +22,16 @@ part 'audio_state.dart';
 class AudioBloc extends Bloc<AudioEvent, AudioState> {
   final BookBloc bookBloc;
   final Book book;
+  final List<Book> books;
   AudioPlayer? audioPlayer;
 
-  AudioBloc({required this.bookBloc, required this.book}) : super(AudioInitial()) {
-    on<InitializeAudio>(_initializeAudio);
-    on<SkipSeconds>(_skipSeconds);
+  AudioBloc({
+    required this.bookBloc,
+    required this.book,
+    required this.books,
+  }) : super(AudioInitial()) {
+    on<InitializeAudio>((event, emit) => _initializeAudio(event, emit));
+    on<SkipSeconds>((event, emit) => _skipSeconds(event, emit));
   }
 
   void _skipSeconds(SkipSeconds event, emit) async {
@@ -52,14 +58,14 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
               speed: audioPlayer!.speed,
             ),
           ),
-          books: [],
+          books: books,
         ),
       );
       audioPlayer?.stop();
     }
     return super.close();
   }
-
+  /// init audioplayer
   void _initializeAudio(InitializeAudio event, emit) async {
     try {
       emit(AudioLoading());
@@ -84,10 +90,10 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
         emit(const AudioError(message: 'Ошибка инициализации плейлиста'));
       }
     } on Exception catch (exception) {
-      emit(AudioError(message: exception.toString()));
+      emit(AudioError(message: exception.message));
     }
   }
-
+  /// add mp3 files to playlist with tags
   Future<List<AudioSource>?> _initializePlaylist(Book book) async {
     List<AudioSource> playlist = [];
     try {
@@ -114,7 +120,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       throw Exception('Ошибка инициализации плейлиста');
     }
   }
-
+  /// get list of mp3 files for book (bookId)
   Future<List<FileSystemEntity>> _getAudioFiles(int bookId) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -123,7 +129,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       fileEntityList.sort((a, b) => a.path.toString().compareTo(b.path.toString()));
       return fileEntityList;
     } on Exception catch (exception) {
-      log('FETCHING AUDIO FILES ERROR $exception');
+      log('FETCHING AUDIO FILES ERROR ${exception.message}');
       throw Exception('Ошибка получения аудиофайлов');
     }
   }

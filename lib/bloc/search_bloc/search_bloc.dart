@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
 
 import '../../repository/search_repository.dart';
 import '../../rutracker/models/query_response.dart';
@@ -30,7 +29,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         emit(const SearchError(message: 'Ошибка поиска'));
       }
     } on Exception catch (exception) {
-      emit(SearchError(message: exception.toString()));
+      emit(SearchError(message: exception.message));
     }
   }
 
@@ -44,7 +43,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         emit(const SearchError(message: 'Ошибка поиска'));
       }
     } on Exception catch (exception) {
-      emit(SearchError(message: exception.toString()));
+      emit(SearchError(message: exception.message));
     }
   }
 }

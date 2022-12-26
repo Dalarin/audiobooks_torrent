@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/main.dart';
 import 'package:rutracker_app/pages/search_page.dart';
+import 'package:rutracker_app/providers/theme_manager.dart';
 import 'package:rutracker_app/rutracker/rutracker.dart';
 
 class AuthenticationPage extends StatelessWidget {
@@ -16,16 +17,42 @@ class AuthenticationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<AuthenticationBloc>(
       create: (context) => AuthenticationBloc()..add(ApplicationStarted()),
-      child: Builder(builder: (context) {
-        return Scaffold(
-          appBar: AppBar(
-            elevation: 0.0,
-            backgroundColor: Colors.transparent,
-            centerTitle: true,
-            title: Text('Авторизация'),
-            actions: [
-              InkWell(
-                onTap: () {
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              elevation: 0.0,
+              backgroundColor: Colors.transparent,
+              centerTitle: true,
+              title: Text('Авторизация'),
+              actions: [
+                InkWell(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) {
+                          return BottomNavBar(
+                            authenticationBloc: context.read<AuthenticationBloc>(),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.exit_to_app),
+                )
+              ],
+            ),
+            body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
+              listener: (context, state) {
+                print(state);
+                if (state is AuthenticationError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                    ),
+                  );
+                } else if (state is AuthenticationSuccess) {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -36,45 +63,22 @@ class AuthenticationPage extends StatelessWidget {
                       },
                     ),
                   );
-                },
-                child: const Icon(Icons.exit_to_app),
-              )
-            ],
-          ),
-          body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-            listener: (context, state) {
-              if (state is AuthenticationError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                  ),
-                );
-              } else if (state is AuthenticationSuccess) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) {
-                      return BottomNavBar(
-                        authenticationBloc: context.read<AuthenticationBloc>(),
-                      );
-                    },
-                  ),
-                );
-              }
-            },
-            builder: (context, state) {
-              if (state is AuthenticationInitial) {
+                }
+              },
+              builder: (context, state) {
+                if (state is AuthenticationInitial) {
+                  return AuthenticationPageContent();
+                } else if (state is AuthenticationLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
                 return AuthenticationPageContent();
-              } else if (state is AuthenticationLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              return AuthenticationPageContent();
-            },
-          ),
-        );
-      }),
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -150,9 +154,7 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
           ),
         );
       },
-      child: Text(
-        'Войти',
-      ),
+      child: Text('Войти'),
     );
   }
 }

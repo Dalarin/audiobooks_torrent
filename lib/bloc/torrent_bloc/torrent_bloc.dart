@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartorrent_common/dartorrent_common.dart';
@@ -21,7 +20,8 @@ class TorrentBloc extends Bloc<TorrentEvent, TorrentState> {
   TorrentTask? _task;
 
   TorrentBloc({required this.api}) : super(TorrentInitial()) {
-    on<StartTorrent>(_startTorrent);
+    on<StartTorrent>((event, emit) => _startTorrent(event, emit));
+    on<CancelTorrent>((event, emit) => _cancelTorrent(event, emit));
     on<FinishTorrent>((event, emit) {
       emit(TorrentDownloaded());
     });
@@ -33,6 +33,15 @@ class TorrentBloc extends Bloc<TorrentEvent, TorrentState> {
       _task?.stop();
     }
     return super.close();
+  }
+
+  void _cancelTorrent(CancelTorrent event, emit) async {
+    _task?.stop();
+    var directory = await getApplicationDocumentsDirectory();
+    bool directoryDeleted = await _deleteDirectory(directory, event.book.id);
+    if (!directoryDeleted) {
+      emit(const TorrentError(message: 'Ошибка удаления скачанных данных'));
+    }
   }
 
   void _startTorrent(StartTorrent event, Emitter<TorrentState> emit) async {
@@ -62,6 +71,16 @@ class TorrentBloc extends Bloc<TorrentEvent, TorrentState> {
       });
     } on Exception catch (exception) {
       emit(TorrentError(message: exception.toString()));
+    }
+  }
+
+  Future<bool> _deleteDirectory(Directory path, int subPath) async {
+    var directory = Directory('${path.path}/books/$subPath/');
+    if (await directory.exists()) {
+      directory.delete(recursive: true);
+      return true;
+    } else {
+      return false;
     }
   }
 

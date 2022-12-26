@@ -7,10 +7,9 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/pages/audio_page.dart';
 
-import 'package:rutracker_app/rutracker/models/book.dart';
-
 import '../bloc/book_bloc/book_bloc.dart';
 import '../bloc/torrent_bloc/torrent_bloc.dart';
+import '../rutracker/models/book.dart';
 
 class BookPage extends StatelessWidget {
   final Book book;
@@ -58,7 +57,9 @@ class BookPage extends StatelessWidget {
           children: [
             _coverGradientBox(context),
             Container(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.57),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).size.height * 0.57,
+              ),
               width: MediaQuery.of(context).size.width * 0.7,
               child: _downloadButtonBuilder(
                 context: context,
@@ -227,9 +228,7 @@ class BookPage extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(
-          height: 15,
-        ),
+        const SizedBox(height: 15),
         Tooltip(
           message: book.title,
           child: Text(
@@ -237,19 +236,17 @@ class BookPage extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
-        const SizedBox(
-          height: 5,
-        ),
+        const SizedBox(height: 5),
         Tooltip(
           message: book.author,
           child: Text(
             book.author,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
       ],
@@ -274,6 +271,39 @@ class BookPage extends StatelessWidget {
     );
   }
 
+  Future<bool> _showPreservationProgressDialog(BuildContext context, Book book) async {
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Выход'),
+          content: const Text(
+            'Вы хотите сохранить прогресс скачивания?'
+            ' Вы сможете продолжить скачивание позже',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Да'),
+              onPressed: () {
+                Navigator.pop(context, true);
+                // Dismiss alert dialog
+              },
+            ),
+            TextButton(
+              onPressed: () {
+                final bloc = context.read<TorrentBloc>();
+                bloc.add(CancelTorrent(book: book));
+                Navigator.pop(context, true);
+              },
+              child: const Text('Нет'),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldPop!;
+  }
+
   Widget _downloadButtonBuilder({
     required BuildContext context,
     required double height,
@@ -295,54 +325,81 @@ class BookPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        if (state is TorrentDownloading) {
-          return StreamBuilder(
-            stream: state.torrentProgress,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                double percent = double.parse(snapshot.data.toString());
-                return _downloadButton(
-                  context: context,
-                  center: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.pause,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        '${(percent * 100).toStringAsFixed(2)} %',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  percent: percent,
-                  height: height,
-                  width: width,
-                  book: book,
-                );
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            },
-          );
-        }
-        return _downloadButton(
-          center: _getCenterWidget(context, state, book),
-          percent: 1,
-          context: context,
-          height: height,
-          width: width,
-          book: book,
+        return WillPopScope(
+          child: _getWillPopChild(
+            context: context,
+            state: state,
+            height: height,
+            width: width,
+          ),
+          onWillPop: () {
+            if (state is TorrentDownloading) {
+              return _showPreservationProgressDialog(context, book);
+            }
+            return Future.value(true);
+          },
         );
       },
     );
   }
 
-  Widget _getCenterWidget(BuildContext context, TorrentState state, Book book) {
+  Widget _getWillPopChild({required BuildContext context, required TorrentState state, required double height, required double width}) {
+    if (state is TorrentDownloading) {
+      return StreamBuilder(
+        stream: state.torrentProgress,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            double percent = double.parse(snapshot.data.toString());
+            return _downloadButton(
+              context: context,
+              center: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.pause,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${(percent * 100).toStringAsFixed(2)} %',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              percent: percent,
+              height: height,
+              width: width,
+              book: book,
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      );
+    }
+    return _downloadButton(
+      center: _getCenterWidget(
+        context: context,
+        state: state,
+        book: book,
+        books: books,
+      ),
+      percent: 1,
+      context: context,
+      height: height,
+      width: width,
+      book: book,
+    );
+  }
+
+  Widget _getCenterWidget({
+    required BuildContext context,
+    required TorrentState state,
+    required Book book,
+    required List<Book> books,
+  }) {
     if (book.isDownloaded) {
       return InkWell(
         onTap: () {
@@ -352,7 +409,10 @@ class BookPage extends StatelessWidget {
               builder: (_) {
                 return BlocProvider.value(
                   value: context.read<BookBloc>(),
-                  child: AudioPage(book: book),
+                  child: AudioPage(
+                    book: book,
+                    books: books,
+                  ),
                 );
               },
             ),
@@ -510,22 +570,19 @@ class BookPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       elevation: 0.0,
       actions: [
-        InkWell(
-          onTap: () {
+        IconButton(
+          onPressed: () {
             book.isFavorite = !book.isFavorite;
             final bloc = context.read<BookBloc>();
             bloc.add(UpdateBook(book: book, books: books));
           },
-          child: Icon(
-            book.isFavorite ? Icons.favorite : Icons.favorite_border_outlined,
-          ),
+          icon: Icon(book.isFavorite ? Icons.favorite : Icons.favorite_border_outlined),
         ),
-        const SizedBox(width: 15),
-        InkWell(
-          onTap: () {
+        IconButton(
+          onPressed: () {
             _showMoreInfoDialog(context, book);
           },
-          child: const Icon(Icons.info_outline_rounded),
+          icon: const Icon(Icons.info_outline_rounded),
         ),
       ],
     );

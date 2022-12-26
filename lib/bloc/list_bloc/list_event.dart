@@ -11,9 +11,14 @@ class GetLists extends ListEvent {}
 
 class CreateList extends ListEvent {
   final List<BookList> list;
-  final BookList bookList;
+  final String title;
+  final String description;
 
-  const CreateList({required this.bookList, required this.list});
+  const CreateList({
+    required this.list,
+    required this.title,
+    required this.description,
+  });
 }
 
 class DeleteList extends ListEvent {
@@ -28,4 +33,11 @@ class UpdateList extends ListEvent {
   final List<BookList> list;
 
   const UpdateList({required this.bookList, required this.list});
+}
+
+class AddBook extends ListEvent {
+  final BookList bookList;
+  final Book book;
+
+  const AddBook({required this.bookList, required this.book});
 }

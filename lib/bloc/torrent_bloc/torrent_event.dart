@@ -18,5 +18,7 @@ class PauseTorrent extends TorrentEvent {}
 class FinishTorrent extends TorrentEvent {}
 
 class CancelTorrent extends TorrentEvent {
+  final Book book;
 
+  const CancelTorrent({required this.book});
 }

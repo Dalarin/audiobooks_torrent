@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
-import 'package:rutracker_app/rutracker/models/list.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
+import '../rutracker/models/book.dart';
+import '../rutracker/models/list.dart';
 
 class ListPage extends StatelessWidget {
   final BookList list;

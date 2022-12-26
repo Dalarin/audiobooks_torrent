@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/rutracker/providers/enums.dart';
 
 import '../../repository/book_repository.dart';
 import '../../rutracker/models/book.dart';
-import '../authentication_bloc/authentication_bloc.dart';
 
 part 'book_event.dart';
 
@@ -39,18 +39,14 @@ class BookBloc extends Bloc<BookEvent, BookState> {
     try {
       emit(BookLoading());
       Book? book = await repository.fetchBook(event.bookId);
-      if (book != null) {
-        emit(BookLoaded(books: [book]));
+      book ??= await repository.fetchBookFromSource(event.bookId);
+      if (book == null) {
+        emit(const BookError(message: 'Ошибка загрузки книги'));
       } else {
-        book = await repository.fetchBookFromSource(event.bookId);
-        if (book != null) {
-          emit(BookLoaded(books: [book]));
-        } else {
-          emit(const BookError(message: 'Ошибка загрузки книги'));
-        }
+        emit(BookLoaded(books: [book]));
       }
     } on Exception catch (exception) {
-      emit(BookError(message: exception.toString()));
+      emit(BookError(message: exception.message));
     }
   }
 
@@ -60,14 +56,14 @@ class BookBloc extends Bloc<BookEvent, BookState> {
   ) async {
     try {
       emit(BookLoading());
-      List<Book>? favoritesBooks = await repository.fetchFavoritesBooks();
+      List<Book>? favoritesBooks = await repository.fetchFavoritesBooks(event.sortOrder);
       if (favoritesBooks != null) {
         emit(BookLoaded(books: favoritesBooks));
       } else {
         emit(const BookError(message: 'Ошибка загрузки избранных книг'));
       }
-    } catch (exception) {
-      emit(BookError(message: exception.toString()));
+    } on Exception catch (exception) {
+      emit(BookError(message: exception.message));
     }
   }
 
@@ -104,7 +100,6 @@ class BookBloc extends Bloc<BookEvent, BookState> {
       }
     }
   }
-
 
   void _deleteBook(
     DeleteBook event,
