@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rutracker_api/rutracker_api.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 
+import '../../models/query_response.dart';
 import '../../repository/search_repository.dart';
-import '../../rutracker/models/query_response.dart';
-import '../../rutracker/providers/enums.dart';
 
 part 'search_event.dart';
 
@@ -36,7 +36,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   _searchByGenre(SearchByGenre event, Emitter<SearchState> emit) async {
     try {
       emit(SearchLoading());
-      List<QueryResponse>? responds = await repository.searchByGenre(event.genres);
+      List<QueryResponse>? responds = await repository.searchByGenre(event.categories);
       if (responds != null) {
         emit(SearchLoaded(queryResponse: responds));
       } else {

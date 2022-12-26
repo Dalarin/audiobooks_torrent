@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rutracker_api/rutracker_api.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/pages/book_page.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
-import 'package:rutracker_app/rutracker/models/query_response.dart';
-import 'package:rutracker_app/rutracker/providers/enums.dart';
 
 import '../bloc/search_bloc/search_bloc.dart';
+import '../models/query_response.dart';
 
 class SearchPage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
-  final List<Genres> selectedGenre = [Genres.all];
+  final List<Categories> selectedGenre = [Categories.all];
 
   SearchPage({
     Key? key,
@@ -90,9 +90,9 @@ class SearchPage extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (_) {
-        return const Dialog(
+        return const AlertDialog(
           backgroundColor: Colors.transparent,
-          child: Center(
+          content: Center(
             child: CircularProgressIndicator(),
           ),
         );
@@ -122,15 +122,16 @@ class SearchPage extends StatelessWidget {
       ),
     );
   }
-  Widget _tag(BuildContext context, Genres tag, StateSetter setter) {
+
+  Widget _tag(BuildContext context, Categories tag, StateSetter setter) {
     return ChoiceChip(
-      label: Text(tag.name),
+      label: Text(tag.text),
       selected: selectedGenre[0].index == tag.index,
       onSelected: (bool value) {
         setter.call(() {
           selectedGenre.first = tag;
           final bloc = context.read<SearchBloc>();
-          bloc.add(SearchByGenre(genres: tag));
+          bloc.add(SearchByGenre(categories: tag));
         });
       },
     );
@@ -142,15 +143,15 @@ class SearchPage extends StatelessWidget {
         direction: Axis.horizontal,
         spacing: 10,
         children: [
-          _tag(context, Genres.foreignFantasy, setState),          _tag(context, Genres.history, setState),
-
-          _tag(context, Genres.russianFantasy, setState),
-          _tag(context, Genres.radioAppearances, setState),
-          _tag(context, Genres.biography, setState),
-          _tag(context, Genres.foreignLiterature, setState),
-          _tag(context, Genres.foreignDetectives, setState),
-          _tag(context, Genres.russianDetectives, setState),
-          _tag(context, Genres.educationalLiterature, setState),
+          _tag(context, Categories.foreignFantasy, setState),
+          _tag(context, Categories.history, setState),
+          _tag(context, Categories.russianFantasy, setState),
+          _tag(context, Categories.radioPerformances, setState),
+          _tag(context, Categories.biography, setState),
+          _tag(context, Categories.foreignLiterature, setState),
+          _tag(context, Categories.foreignDetectives, setState),
+          _tag(context, Categories.russianDetectives, setState),
+          _tag(context, Categories.scienceLiterature, setState),
         ],
       );
     });
@@ -197,7 +198,7 @@ class SearchPage extends StatelessWidget {
     return InkWell(
       onTap: () {
         final bloc = context.read<BookBloc>();
-        bloc.add(GetBookFromSource(bookId: int.parse(result.link)));
+        bloc.add(GetBookFromSource(bookId: result));
       },
       child: Container(
         constraints: BoxConstraints(

@@ -42,6 +42,15 @@ class Parser {
       return 'Не найдено';
     }
   }
+  
+  String _findImage(Element element ){
+    try {
+      String? image = element.getElementsByClassName('postImg postImgAligned img-right').first.attributes['title'];
+      return image ?? 'nothing';
+    } on Exception {
+      return 'nothing';
+    }
+  }
 
   List<Map<String, dynamic>> parseCommentsResponse(Document document) {
     List<Map<String, dynamic>> response = [];
@@ -71,7 +80,7 @@ class Parser {
       List<String> info = element.text.substring(0, element.text.indexOf('Описание')).split('\n');
       Map<String, dynamic> response = {};
       response['title'] = info.firstWhere((element) => element.trim().isNotEmpty);
-      response['image'] = element.getElementsByClassName('postImg postImgAligned img-right').first.attributes['title'];
+      response['image'] = _findImage(element);
       response['author'] = '${_findOptionalLine(info, 'Имя')} ${_findOptionalLine(info, 'Фамилия')}';
       response['executor'] = _findOptionalLine(info, 'Исполнитель');
       response['genre'] = _findOptionalLine(info, 'Жанр');

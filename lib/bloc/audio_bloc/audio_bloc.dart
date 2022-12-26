@@ -12,7 +12,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 
-import '../../rutracker/models/book.dart';
+import '../../models/book.dart';
 import '../book_bloc/book_bloc.dart';
 
 part 'audio_event.dart';

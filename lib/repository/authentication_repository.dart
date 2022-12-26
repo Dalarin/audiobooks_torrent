@@ -1,4 +1,5 @@
-import 'package:rutracker_app/rutracker/rutracker.dart';
+
+import 'package:rutracker_api/rutracker_api.dart';
 
 class AuthenticationRepository {
   final RutrackerApi api;
@@ -7,7 +8,6 @@ class AuthenticationRepository {
   const AuthenticationRepository({required this.api});
 
   Future<bool> login(String username, String password) =>
-      api.login(username, password);
+      api.authentication(login: username, password: password);
 
-  Future<bool> restoreLogin(String cookies) => api.restoreCookies(cookies);
 }

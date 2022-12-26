@@ -1,10 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/rutracker/providers/enums.dart';
+import 'package:rutracker_app/models/query_response.dart';
+import 'package:rutracker_app/providers/enums.dart';
 
+import '../../models/book.dart';
 import '../../repository/book_repository.dart';
-import '../../rutracker/models/book.dart';
 
 part 'book_event.dart';
 
@@ -38,8 +39,8 @@ class BookBloc extends Bloc<BookEvent, BookState> {
   ) async {
     try {
       emit(BookLoading());
-      Book? book = await repository.fetchBook(event.bookId);
-      book ??= await repository.fetchBookFromSource(event.bookId);
+      Book? book = await repository.fetchBook(int.parse(event.bookId.link));
+      book ??= await repository.fetchBookFromSource(int.parse(event.bookId.link), event.bookId.size);
       if (book == null) {
         emit(const BookError(message: 'Ошибка загрузки книги'));
       } else {

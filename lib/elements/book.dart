@@ -6,7 +6,7 @@ import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart'
 import 'package:rutracker_app/pages/book_page.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
-import '../rutracker/models/book.dart';
+import '../models/book.dart';
 
 class BookElement extends StatelessWidget {
   final Book book;

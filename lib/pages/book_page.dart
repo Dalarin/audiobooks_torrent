@@ -9,7 +9,7 @@ import 'package:rutracker_app/pages/audio_page.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
 import '../bloc/torrent_bloc/torrent_bloc.dart';
-import '../rutracker/models/book.dart';
+import '../models/book.dart';
 
 class BookPage extends StatelessWidget {
   final Book book;
@@ -147,7 +147,7 @@ class BookPage extends StatelessWidget {
         _aboutElement(
           context: context,
           title: 'Аудио',
-          text: book.time,
+          text: book.audio,
           textAlign: TextAlign.end,
           alignment: CrossAxisAlignment.end,
         ),

@@ -105,14 +105,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  charcode:
-    dependency: transitive
-    description:
-      name: charcode
-      sha256: fb98c0f6d12c920a02ee2d998da788bca066ca5f148492b7085ee23372b12306
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.1"
   clock:
     dependency: transitive
     description:
@@ -129,14 +121,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
-  convert:
+  cookie_jar:
     dependency: transitive
     description:
-      name: convert
-      sha256: "3fa83bc417e26f1d55814443a603747d48e3cdf55b2f4fea27dea8e9224dcefd"
+      name: cookie_jar
+      sha256: d1cc6516a190ba667941f722b6365d202caff3dacb38de24268b8d6ff1ec8a1d
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.1"
   crypto:
     dependency: "direct overridden"
     description:
@@ -169,6 +161,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.7"
+  dio:
+    dependency: transitive
+    description:
+      name: dio
+      sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.6"
+  dio_cookie_manager:
+    dependency: transitive
+    description:
+      name: dio_cookie_manager
+      sha256: ed7ee3ba6cdb54599c8984d5a4ce09675c553ead6c28608eb54e38eec5b4f954
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  dio_proxy_adapter:
+    dependency: transitive
+    description:
+      name: dio_proxy_adapter
+      sha256: "00aca9e9445ddb422c4bb14abee0c17eaf58fe09017da42f9ed1c1b7c740cdc5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   equatable:
     dependency: "direct main"
     description:
@@ -254,7 +270,7 @@ packages:
     source: sdk
     version: "0.0.0"
   html:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: html
       sha256: d9793e10dbe0e6c364f4c59bf3e01fb33a9b2a674bc7a1081693dba0614b6269
@@ -262,7 +278,7 @@ packages:
     source: hosted
     version: "0.15.1"
   http:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       name: http
       sha256: "6aa2946395183537c8b880962d935877325d6a09a2867c3970c05c0fed6ac482"
@@ -485,14 +501,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.5"
-  proxies:
+  rutracker_api:
     dependency: "direct main"
     description:
-      name: proxies
-      sha256: "062fcfc327dddb73c41bc435f70e81df9c4b9497a39d10a2e4c59e8ceef521ab"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
+      path: "packages/rutracker_api"
+      relative: true
+    source: path
+    version: "1.0.0"
   rxdart:
     dependency: transitive
     description:
@@ -715,5 +730,5 @@ packages:
     source: hosted
     version: "0.2.0+2"
 sdks:
-  dart: ">=2.18.0 <3.0.0"
+  dart: ">=2.18.3 <3.0.0"
   flutter: ">=3.3.0"

@@ -15,7 +15,7 @@ class Search extends SearchEvent {
 
 
 class SearchByGenre extends SearchEvent {
-  final Genres genres;
+  final Categories categories;
 
-  const SearchByGenre({required this.genres});
+  const SearchByGenre({required this.categories});
 }

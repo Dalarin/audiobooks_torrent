@@ -1,7 +1,7 @@
 import 'package:rutracker_app/providers/database.dart';
-import 'package:rutracker_app/rutracker/models/list_object.dart';
 
-import '../rutracker/models/list.dart';
+import '../models/book_list.dart';
+import '../models/list_object.dart';
 
 
 

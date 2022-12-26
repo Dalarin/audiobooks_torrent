@@ -16,8 +16,6 @@ class PageProvider {
   final Dio _dio;
   final PersistCookieJar _cookieJar;
 
-
-
   PageProvider._create(this._dio, this._cookieJar) {
     _host = 'https://rutracker.org';
     _loginUrl = '$_host/forum/login.php';
@@ -25,12 +23,10 @@ class PageProvider {
     _topicUrl = '$_host/forum/viewtopic.php';
   }
 
-  static Future<PageProvider> create(Dio dio, PersistCookieJar cookieJar) async {
+  static Future<List<Object>> create(Dio dio, PersistCookieJar cookieJar) async {
     var component = PageProvider._create(dio, cookieJar);
-    await _checkAuthentication(dio, component);
-    return component;
+    return [component, await _checkAuthentication(dio, component)];
   }
-
 
   static Future<bool> _checkAuthentication(Dio dio, PageProvider pageProvider) async {
     Response response = await dio.get('https://rutracker.org/forum/tracker.php');
@@ -38,10 +34,10 @@ class PageProvider {
       pageProvider._authenticated = true;
       return Future.value(true);
     }
-    throw AuthenticationError('Ошибка авторизации пользователя');
+    return Future.value(false);
   }
 
-  Future<String> authentication(String username, String password) async {
+  Future<bool> authentication(String username, String password) async {
     await _dio.post(
       _loginUrl,
       data: FormData.fromMap({
@@ -58,11 +54,12 @@ class PageProvider {
         );
         _authenticated = true;
         _cookieJar.saveFromResponse(Uri.parse(_host), [Cookie.fromSetCookieValue(cookies)]);
+        return true;
       } else {
         throw AuthenticationError('Ошибка авторизации');
       }
     });
-    return 'true';
+    return false;
   }
 
   Future<Response> searchByQuery(String query, Categories categories) async {
@@ -73,6 +70,7 @@ class PageProvider {
         _searchUrl,
         data: FormData.fromMap({
           "nm": query,
+          'o': '10',
           'f': categories.code,
         }),
         options: Options(
@@ -105,7 +103,6 @@ class PageProvider {
 
   Future<Response> getPageResponse(String link) async {
     if (!_authenticated) {
-      print(await _cookieJar.loadForRequest(Uri.parse(_host)));
       throw AuthenticationError('Пользователь не авторизован');
     } else {
       Response response = await _dio.get(
@@ -128,12 +125,12 @@ class PageProvider {
       throw AuthenticationError('Пользователь не авторизован');
     } else {
       final urlPath = '$_host/forum/dl.php';
-      Response response = await _dio.download(
+      await _dio.download(
         urlPath,
         pathDirectory,
         queryParameters: {'t': link},
       );
-      return response.data;
+      return File.fromUri(Uri.parse(pathDirectory));
     }
   }
 }

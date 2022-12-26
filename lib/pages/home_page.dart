@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
+import 'package:rutracker_app/providers/enums.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
+import '../models/book.dart';
 import '../repository/book_repository.dart';
-import '../rutracker/models/book.dart';
-import '../rutracker/providers/enums.dart';
 
 class HomePage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
@@ -138,10 +138,7 @@ class HomePage extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return BlocConsumer<BookBloc, BookState>(
-            bloc: context.read<BookBloc>()
-              ..add(const GetFavoritesBooks(
-                sortOrder: SORT.standart,
-              )),
+            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart)),
             listener: (context, state) {
               if (state is BookError) {
                 ScaffoldMessenger.of(context).showSnackBar(

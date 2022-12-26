@@ -9,7 +9,7 @@ import 'package:rxdart/rxdart.dart';
 
 import '../bloc/audio_bloc/audio_bloc.dart';
 import '../bloc/book_bloc/book_bloc.dart';
-import '../rutracker/models/book.dart';
+import '../models/book.dart';
 
 class AudioPage extends StatelessWidget {
   final Book book;

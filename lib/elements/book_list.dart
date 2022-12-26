@@ -3,13 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
-import 'package:rutracker_app/rutracker/providers/enums.dart';
+import 'package:rutracker_app/providers/enums.dart';
 
-import '../rutracker/models/book.dart';
+import '../models/book.dart';
+
 
 class BookList extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
-  final SORT order;
+  final Sort order;
 
   const BookList({
     Key? key,

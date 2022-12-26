@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
 
-import '../rutracker/models/list.dart';
+import '../models/book_list.dart';
+
 
 class CreateListDialog extends StatefulWidget {
   final List<BookList> lists;

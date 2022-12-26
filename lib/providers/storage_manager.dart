@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../rutracker/models/proxy.dart';
+import '../models/proxy.dart';
 
 
 class StorageManager {

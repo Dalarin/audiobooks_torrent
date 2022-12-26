@@ -4,8 +4,8 @@ import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart'
 import 'package:rutracker_app/elements/book.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
-import '../rutracker/models/book.dart';
-import '../rutracker/models/list.dart';
+import '../models/book.dart';
+import '../models/book_list.dart';
 
 class ListPage extends StatelessWidget {
   final BookList list;

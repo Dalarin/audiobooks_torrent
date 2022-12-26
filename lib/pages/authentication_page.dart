@@ -8,7 +8,6 @@ import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart'
 import 'package:rutracker_app/main.dart';
 import 'package:rutracker_app/pages/search_page.dart';
 import 'package:rutracker_app/providers/theme_manager.dart';
-import 'package:rutracker_app/rutracker/rutracker.dart';
 
 class AuthenticationPage extends StatelessWidget {
   const AuthenticationPage({Key? key}) : super(key: key);
@@ -45,7 +44,6 @@ class AuthenticationPage extends StatelessWidget {
             ),
             body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
               listener: (context, state) {
-                print(state);
                 if (state is AuthenticationError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

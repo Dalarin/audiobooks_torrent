@@ -15,14 +15,11 @@ dependencies:
   dartorrent_common: ^1.0.3
   equatable: ^2.0.5
   flutter_bloc: ^8.1.1
-  html: ^0.15.0
-  http: ^0.13.4
   just_audio: ^0.9.27
   just_audio_background: ^0.0.1-beta.7
   path_provider: ^2.0.11
   percent_indicator: ^4.2.2
   provider: ^6.0.3
-  proxies: ^0.2.0
   shared_preferences: ^2.0.11
   sqflite: ^2.0.1
   torrent_task: ^0.3.0

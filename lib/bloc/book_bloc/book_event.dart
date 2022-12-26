@@ -8,7 +8,7 @@ abstract class BookEvent extends Equatable {
 }
 
 class GetFavoritesBooks extends BookEvent {
-  final SORT sortOrder;
+  final Sort sortOrder;
   const GetFavoritesBooks({required this.sortOrder});
 }
 
@@ -21,7 +21,7 @@ class GetBook extends BookEvent {
 }
 
 class GetBookFromSource extends BookEvent {
-  final int bookId;
+  final QueryResponse bookId;
 
   const GetBookFromSource({required this.bookId});
 }

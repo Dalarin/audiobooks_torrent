@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../rutracker/models/settings.dart';
+import '../models/settings.dart';
 
 
 class SettingsNotifier with ChangeNotifier {

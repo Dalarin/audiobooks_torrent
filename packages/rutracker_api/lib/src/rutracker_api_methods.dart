@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dio_proxy_adapter/dio_proxy_adapter.dart';
@@ -14,24 +16,24 @@ class RutrackerApi {
   late final PageProvider _pageProvider;
   late final Parser _parser;
 
-
   /// The [proxyUrl] variable should have the form username:password@host:port,
   ///
   /// in the absence of a login and password, the variable should have the form host:port
   ///
   /// Example with login and password: jafprrvt:rnvnodrqf6p2@185.199.229.156:7492
-  Future<RutrackerApi> create({required String proxyUrl}) async {
-    var cookieJar = PersistCookieJar();
+  Future<List<Object>> create({required String proxyUrl, required String cookieDirectory}) async {
+    var cookieJar = PersistCookieJar(storage: FileStorage(cookieDirectory));
     _dio.useProxy(proxyUrl);
     _dio.interceptors.add(CookieManager(cookieJar));
     _dio.options = BaseOptions(validateStatus: (status) => status! < 500);
     _parser = Parser();
-    _pageProvider = await PageProvider.create(_dio, cookieJar);
-    return this;
+    List<Object> object = await PageProvider.create(_dio, cookieJar);
+    _pageProvider = object[0] as PageProvider;
+    return [this, object[1]];
   }
 
   /// Use it for authentication.
-  Future<String> authentication({
+  Future<bool> authentication({
     required String login,
     required String password,
   }) {
@@ -56,7 +58,7 @@ class RutrackerApi {
     return _parser.parseQueryResponse(document);
   }
 
-  Future downloadTorrentFile({required String link, required String pathDirectory}) {
+  Future<File> downloadTorrentFile({required String link, required String pathDirectory}) {
     return _pageProvider.downloadTorrentFile(link, pathDirectory);
   }
 }

@@ -1,8 +1,9 @@
-import 'package:rutracker_app/rutracker/providers/enums.dart';
-import 'package:rutracker_app/rutracker/rutracker.dart';
+import 'package:rutracker_api/rutracker_api.dart';
+import 'package:rutracker_app/models/listening_info.dart';
+import 'package:rutracker_app/providers/enums.dart';
 
+import '../models/book.dart';
 import '../providers/database.dart';
-import '../rutracker/models/book.dart';
 
 class BookRepository {
   final _database = DBHelper.instance;
@@ -12,10 +13,23 @@ class BookRepository {
 
   Future<List<Book>?> fetchDownloadedBooks() => _database.readDownloadedBooks();
 
-  Future<Book?> fetchBookFromSource(int bookId) =>
-      api.parseBook(bookId.toString());
+  Future<Book?> fetchBookFromSource(int bookId, String size) async {
+    Book book = Book.fromMap(await api.getPage(link: bookId.toString()));
+    return book.copyWith(
+      size: size,
+      id: bookId,
+      listeningInfo: ListeningInfo(
+        bookID: bookId,
+        maxIndex: 0,
+        index: 0,
+        position: 0,
+        speed: 1.0,
+        isCompleted: false,
+      ),
+    );
+  }
 
-  Future<List<Book>?> fetchFavoritesBooks(SORT order) => _database.readFavoriteBooks(order);
+  Future<List<Book>?> fetchFavoritesBooks(Sort order) => _database.readFavoriteBooks(order);
 
   Future<Book?> fetchBook(int bookId) => _database.readBook(bookId);
 
