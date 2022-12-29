@@ -18,6 +18,7 @@ class AuthenticationPage extends StatelessWidget {
       create: (context) => AuthenticationBloc()..add(ApplicationStarted()),
       child: Builder(
         builder: (context) {
+          final bloc = context.read<AuthenticationBloc>();
           return Scaffold(
             appBar: AppBar(
               elevation: 0.0,
@@ -32,7 +33,7 @@ class AuthenticationPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) {
                           return BottomNavBar(
-                            authenticationBloc: context.read<AuthenticationBloc>(),
+                            authenticationBloc: bloc,
                           );
                         },
                       ),
@@ -56,7 +57,7 @@ class AuthenticationPage extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) {
                         return BottomNavBar(
-                          authenticationBloc: context.read<AuthenticationBloc>(),
+                          authenticationBloc: bloc,
                         );
                       },
                     ),

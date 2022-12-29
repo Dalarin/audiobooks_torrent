@@ -22,13 +22,13 @@ void main() async {
   return runApp(
     ChangeNotifierProvider<SettingsNotifier>(
       create: (_) => SettingsNotifier(),
-      child: const Home(),
+      child: const Application(),
     ),
   );
 }
 
-class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
+class Application extends StatelessWidget {
+  const Application({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,6 @@ class Home extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate
           ],
           supportedLocales: const [Locale('ru', 'RU'), Locale('en')],
-
           title: 'Аудиокниги - Торрент',
           home: const AuthenticationPage(),
         );

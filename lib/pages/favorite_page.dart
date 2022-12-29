@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
 import 'package:rutracker_app/elements/create_list_dialog.dart';
@@ -13,6 +14,7 @@ import '../bloc/book_bloc/book_bloc.dart';
 import '../bloc/list_bloc/list_bloc.dart';
 import '../models/book.dart';
 import '../models/book_list.dart';
+import '../providers/theme_manager.dart';
 
 class FavoritePage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
@@ -101,14 +103,14 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _sortListTile(BuildContext context, Sort sort, StateSetter setter) {
+  Widget _sortListTile(BuildContext context, Sort sort, StateSetter setter, SettingsNotifier settingsNotifier) {
     return RadioListTile(
       title: Text(sort.text),
       value: sort.text,
-      groupValue: currentSort.text,
+      groupValue: settingsNotifier.sort.text,
       onChanged: (Object? value) {
         setter.call(() {
-          currentSort = sort;
+          settingsNotifier.sort = sort;
           final bloc = context.read<BookBloc>();
           bloc.add(GetFavoritesBooks(sortOrder: sort, limit: 400));
         });
@@ -116,7 +118,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  void _showSortDialog(BuildContext context, Sort sort) {
+  void _showSortDialog(BuildContext context, SettingsNotifier settingsNotifier) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -129,7 +131,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
               builder: (_, stateSetter) {
                 return ListView.separated(
                   itemBuilder: (_, index) {
-                    return _sortListTile(context, Sort.values[index], stateSetter);
+                    return _sortListTile(context, Sort.values[index], stateSetter, settingsNotifier);
                   },
                   separatorBuilder: (context, index) => const Divider(),
                   itemCount: Sort.values.length,
@@ -142,7 +144,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _favoriteActionBar(BuildContext context, Sort sort) {
+  Widget _favoriteActionBar(BuildContext context, SettingsNotifier notifier) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 55,
@@ -153,7 +155,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
           _action(
             context: context,
             function: (context) {
-              _showSortDialog(context, sort);
+              _showSortDialog(context, notifier);
             },
             children: [
               const Text(
@@ -162,7 +164,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(sort.text),
+              Text(notifier.sort.text),
             ],
           ),
           _action(
@@ -220,13 +222,13 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _favoriteBooksListBuilder(BuildContext context) {
+  Widget _favoriteBooksListBuilder(BuildContext context, SettingsNotifier notifier) {
     final bloc = context.read<BookBloc>();
     return Expanded(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: BlocConsumer<BookBloc, BookState>(
-          bloc: bloc..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 400)),
+          bloc: bloc..add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400)),
           listener: (context, state) {
             if (state is BookError) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -267,11 +269,15 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       },
       child: Builder(
         builder: (builderContext) {
-          return Column(
-            children: [
-              _favoriteActionBar(builderContext, currentSort),
-              _favoriteBooksListBuilder(builderContext),
-            ],
+          return Consumer<SettingsNotifier>(
+            builder: (context, theme, _) {
+              return Column(
+                children: [
+                  _favoriteActionBar(builderContext, theme),
+                  _favoriteBooksListBuilder(builderContext, theme),
+                ],
+              );
+            },
           );
         },
       ),
