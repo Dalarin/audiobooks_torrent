@@ -1,5 +1,3 @@
-// ignore_for_file: must_be_immutable, sized_box_for_whitespace, avoid_print
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -102,7 +100,7 @@ class BookPage extends StatelessWidget {
   }) {
     return Tooltip(
       message: text,
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.33 - 8.0,
         child: Column(
           crossAxisAlignment: alignment,
@@ -204,6 +202,7 @@ class BookPage extends StatelessWidget {
     required double width,
     required double height,
   }) {
+    ThemeData theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -236,7 +235,9 @@ class BookPage extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
         const SizedBox(height: 5),
@@ -246,7 +247,9 @@ class BookPage extends StatelessWidget {
             book.author,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
       ],
@@ -269,39 +272,6 @@ class BookPage extends StatelessWidget {
       animation: false,
       barRadius: const Radius.circular(10),
     );
-  }
-
-  Future<bool> _showPreservationProgressDialog(BuildContext context, Book book) async {
-    final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Выход'),
-          content: const Text(
-            'Вы хотите сохранить прогресс скачивания?'
-            ' Вы сможете продолжить скачивание позже',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Да'),
-              onPressed: () {
-                Navigator.pop(context, true);
-                // Dismiss alert dialog
-              },
-            ),
-            TextButton(
-              onPressed: () {
-                final bloc = context.read<TorrentBloc>();
-                bloc.add(CancelTorrent(book: book));
-                Navigator.pop(context, true);
-              },
-              child: const Text('Нет'),
-            ),
-          ],
-        );
-      },
-    );
-    return shouldPop!;
   }
 
   Widget _downloadButtonBuilder({
@@ -343,7 +313,12 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  Widget _getWillPopChild({required BuildContext context, required TorrentState state, required double height, required double width}) {
+  Widget _getWillPopChild({
+    required BuildContext context,
+    required TorrentState state,
+    required double height,
+    required double width,
+  }) {
     if (state is TorrentDownloading) {
       return StreamBuilder(
         stream: state.torrentProgress,
@@ -394,6 +369,38 @@ class BookPage extends StatelessWidget {
     );
   }
 
+  void _showDeletingDialog(BuildContext context, Book book, List<Book> books) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Удаление книги'),
+          content: Text.rich(
+            TextSpan(
+              text: 'Вы уверены, что хотите удалить книгу ',
+              children: [
+                TextSpan(
+                  text: book.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Да'),
+              onPressed: () {
+                final bloc = context.read<BookBloc>();
+                bloc.add(DeleteBook(book: book, books: books));
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _getCenterWidget({
     required BuildContext context,
     required TorrentState state,
@@ -402,6 +409,9 @@ class BookPage extends StatelessWidget {
   }) {
     if (book.isDownloaded) {
       return InkWell(
+        onLongPress: () {
+          _showDeletingDialog(context, book, books);
+        },
         onTap: () {
           Navigator.push(
             context,
@@ -463,32 +473,6 @@ class BookPage extends StatelessWidget {
     }
   }
 
-  void _showFullImage({
-    required BuildContext context,
-    required Book book,
-    required double width,
-    required double height,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(20),
-            ),
-            child: SizedBox(
-              width: width,
-              height: height * 0.4,
-              child: book.isDownloaded ? _cachedImage(book, width, height) : _networkImage(book, width, height),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _cachedImage(Book book, double width, double height) {
     return Image(
       image: CachedNetworkImageProvider(book.image),
@@ -530,6 +514,57 @@ class BookPage extends StatelessWidget {
     );
   }
 
+  AppBar _appBar(
+    BuildContext context,
+    Book book,
+    List<Book> books,
+  ) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0.0,
+      actions: [
+        IconButton(
+          onPressed: () {
+            book.isFavorite = !book.isFavorite;
+            final bloc = context.read<BookBloc>();
+            bloc.add(UpdateBook(book: book, books: books));
+          },
+          icon: Icon(book.isFavorite ? Icons.favorite : Icons.favorite_border_outlined),
+        ),
+        IconButton(
+          onPressed: () => _showMoreInfoDialog(context, book),
+          icon: const Icon(Icons.info_outline_rounded),
+        ),
+      ],
+    );
+  }
+
+  void _showFullImage({
+    required BuildContext context,
+    required Book book,
+    required double width,
+    required double height,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(20),
+            ),
+            child: SizedBox(
+              width: width,
+              height: height * 0.4,
+              child: book.isDownloaded ? _cachedImage(book, width, height) : _networkImage(book, width, height),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showMoreInfoDialog(BuildContext context, Book book) {
     showDialog<void>(
       context: context,
@@ -561,30 +596,36 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  AppBar _appBar(
-    BuildContext context,
-    Book book,
-    List<Book> books,
-  ) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0.0,
-      actions: [
-        IconButton(
-          onPressed: () {
-            book.isFavorite = !book.isFavorite;
-            final bloc = context.read<BookBloc>();
-            bloc.add(UpdateBook(book: book, books: books));
-          },
-          icon: Icon(book.isFavorite ? Icons.favorite : Icons.favorite_border_outlined),
-        ),
-        IconButton(
-          onPressed: () {
-            _showMoreInfoDialog(context, book);
-          },
-          icon: const Icon(Icons.info_outline_rounded),
-        ),
-      ],
+  Future<bool> _showPreservationProgressDialog(BuildContext context, Book book) async {
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Выход'),
+          content: const Text(
+            'Вы хотите сохранить прогресс скачивания?'
+            ' Вы сможете продолжить скачивание позже',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Да'),
+              onPressed: () {
+                Navigator.pop(context, true);
+                // Dismiss alert dialog
+              },
+            ),
+            TextButton(
+              onPressed: () {
+                final bloc = context.read<TorrentBloc>();
+                bloc.add(CancelTorrent(book: book));
+                Navigator.pop(context, true);
+              },
+              child: const Text('Нет'),
+            ),
+          ],
+        );
+      },
     );
+    return shouldPop!;
   }
 }

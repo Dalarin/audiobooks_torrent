@@ -9,8 +9,6 @@ import '../models/book_list.dart';
 import '../models/list_object.dart';
 import '../models/listening_info.dart';
 
-
-
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
   static Database? _database;
@@ -147,13 +145,29 @@ class DBHelper {
 
   Future<ListObject> createListObject(ListObject listObject) async {
     final db = await instance.database;
-    await db.insert('list_object', listObject.toMap());
+    await db.rawQuery(
+      'INSERT OR REPLACE INTO list_object(id_book, id_list) VALUES(?, ?)',
+      [listObject.idBook, listObject.idList],
+    );
     return listObject.copyWith(idBook: listObject.idBook);
+  }
+
+  Future<bool> deleteListObject(ListObject listObject) async {
+    final db = await instance.database;
+    final id = await db.delete(
+      'list_object',
+      where: 'id_book = ? AND id_list = ?',
+      whereArgs: [listObject.idBook, listObject.idList],
+    );
+    return id > 0;
   }
 
   Future<BookList?> createList(BookList list) async {
     final db = await instance.database;
     final id = await db.insert('list', list.toMap());
+    for (var element in list.books) {
+      createListObject(ListObject(idList: list.id, idBook: element.id));
+    }
     return list.copyWith(id: id);
   }
 
@@ -163,10 +177,10 @@ class DBHelper {
     return result.isNotEmpty ? Book.fromMapDb(result.first) : null;
   }
 
-  Future<List<Book>?> readFavoriteBooks(Sort order) async {
+  Future<List<Book>?> readFavoriteBooks(Sort order, int limit) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isFavorite = ? ${order.query}",
+      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isFavorite = ? ${order.query} LIMIT $limit",
       [1],
     );
     return result.map((json) => Book.fromMapDb(json)).toList();
@@ -187,7 +201,8 @@ class DBHelper {
     List<Map<String, dynamic>> res = List.from(result);
     res = await Future.wait(res.map((element) async {
       Map<String, dynamic> booksMap = Map.from(element);
-      booksMap['books'] = await (db.rawQuery("SELECT * FROM book INNER JOIN list_object on book.id=list_object.id_book WHERE list_object.id_list=${booksMap['id']}"));
+      booksMap['books'] = await (db.rawQuery(
+          "SELECT * FROM book INNER JOIN list_object on book.id=list_object.id_book INNER JOIN 'listening_info' on bookID=id WHERE list_object.id_list=${booksMap['id']}"));
       return booksMap;
     }).toList());
     return res.map((element) => BookList.fromMap(element)).toList();
@@ -211,7 +226,8 @@ class DBHelper {
 
   Future<ListeningInfo?> updateListeningInfo(ListeningInfo listeningInfo) async {
     final db = await instance.database;
-    var count = await db.rawQuery("INSERT OR REPLACE INTO 'listening_info'(bookID, maxIndex, 'index', speed, position, isCompleted) VALUES(?,?,?,?,?,?)", [
+    var count =
+        await db.rawQuery("INSERT OR REPLACE INTO 'listening_info'(bookID, maxIndex, 'index', speed, position, isCompleted) VALUES(?,?,?,?,?,?)", [
       listeningInfo.bookID,
       listeningInfo.maxIndex,
       listeningInfo.index,

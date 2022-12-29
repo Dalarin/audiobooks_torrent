@@ -22,3 +22,9 @@ class CancelTorrent extends TorrentEvent {
 
   const CancelTorrent({required this.book});
 }
+
+class DeleteTorrentBook extends TorrentEvent {
+  final Book book;
+
+  const DeleteTorrentBook({required this.book});
+}

@@ -9,7 +9,9 @@ abstract class BookEvent extends Equatable {
 
 class GetFavoritesBooks extends BookEvent {
   final Sort sortOrder;
-  const GetFavoritesBooks({required this.sortOrder});
+  final int limit;
+
+  const GetFavoritesBooks({required this.sortOrder, required this.limit});
 }
 
 class GetDownloadedBooks extends BookEvent {}
@@ -33,10 +35,16 @@ class UpdateBook extends BookEvent {
   const UpdateBook({required this.book, required this.books});
 }
 
+class GetComments extends BookEvent {
+  final int bookId;
+  final int start;
 
+  const GetComments({required this.bookId, required this.start});
+}
 
 class DeleteBook extends BookEvent {
   final Book book;
+  final List<Book> books;
 
-  const DeleteBook({required this.book});
+  const DeleteBook({required this.book, required this.books});
 }

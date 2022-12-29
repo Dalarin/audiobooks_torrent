@@ -41,3 +41,11 @@ class AddBook extends ListEvent {
 
   const AddBook({required this.bookList, required this.book});
 }
+
+
+class RemoveBook extends ListEvent {
+  final BookList bookList;
+  final Book book;
+
+  const RemoveBook({required this.bookList, required this.book});
+}

@@ -3,8 +3,6 @@ import 'package:rutracker_app/providers/database.dart';
 import '../models/book_list.dart';
 import '../models/list_object.dart';
 
-
-
 class ListRepository {
   final _database = DBHelper.instance;
 
@@ -17,4 +15,6 @@ class ListRepository {
   Future<BookList?> updateList(BookList bookList) => _database.updateList(bookList);
 
   Future<bool> deleteList(int listId) => _database.deleteList(listId);
+
+  Future<bool> removeBookFromList(ListObject listObject) =>  _database.deleteListObject(listObject);
 }

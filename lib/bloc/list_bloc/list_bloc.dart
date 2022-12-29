@@ -20,19 +20,29 @@ class ListBloc extends Bloc<ListEvent, ListState> {
     on<DeleteList>((event, emit) => _deleteList(event, emit));
     on<GetLists>((event, emit) => _getLists(event, emit));
     on<AddBook>((event, emit) => _addBookToList(event, emit));
+    on<RemoveBook>((event, emit) => _removeBookFromList(event, emit));
+  }
+
+  _removeBookFromList(RemoveBook event, emit) async {
+    try {
+      ListObject? listObject = ListObject(idList: event.bookList.id, idBook: event.book.id);
+      bool deleted = await repository.removeBookFromList(listObject);
+      if (deleted) {
+        emit(ListLoaded(list: [event.bookList]));
+      } else {
+        emit(const ListError(message: 'Ошибка удаления книги из списка'));
+      }
+    } on Exception catch (exception) {
+      emit(ListError(message: exception.message));
+    }
   }
 
   _addBookToList(AddBook event, Emitter<ListState> emit) async {
     try {
-      if (!event.bookList.books.contains(event.book)) {
-        ListObject? listObject = ListObject(idList: event.bookList.id, idBook: event.book.id);
-        listObject = await repository.addBookToList(listObject);
-        if (listObject != null) {
-          event.bookList.books.add(event.book);
-          emit(ListLoaded(list: [event.bookList]));
-        } else {
-          emit(const ListError(message: 'Ошибка добавления книги в список'));
-        }
+      ListObject? listObject = ListObject(idList: event.bookList.id, idBook: event.book.id);
+      listObject = await repository.addBookToList(listObject);
+      if (listObject != null) {
+        emit(ListLoaded(list: [event.bookList]));
       } else {
         emit(const ListError(message: 'Ошибка добавления книги в список'));
       }

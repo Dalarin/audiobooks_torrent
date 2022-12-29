@@ -22,7 +22,7 @@ class BookList extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<BookBloc>();
     return BlocConsumer<BookBloc, BookState>(
-      bloc: bloc..add(GetFavoritesBooks(sortOrder: order)),
+      bloc: bloc..add(GetFavoritesBooks(sortOrder: order, limit: 3)),
       listener: (context, state) {
         if (state is BookError) {
           ScaffoldMessenger.of(context).showSnackBar(

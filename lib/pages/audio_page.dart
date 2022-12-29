@@ -94,7 +94,7 @@ class AudioPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           _seekBar(context, audioPlayer),
-          _controlButtons(context, book,books, audioPlayer),
+          _controlButtons(context, book, books, audioPlayer),
         ],
       ),
     );
@@ -317,6 +317,8 @@ class SeekBar extends StatefulWidget {
 }
 
 class _SeekBarState extends State<SeekBar> {
+  double? _dragValue;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -324,17 +326,21 @@ class _SeekBarState extends State<SeekBar> {
         ExcludeSemantics(
           child: Slider(
             min: 0.0,
-            max: widget.duration.inSeconds.toDouble(),
-            value: min(widget.position.inSeconds.toDouble(), widget.duration.inSeconds.toDouble()),
+            max: widget.duration.inMilliseconds.toDouble(),
+            value: min(_dragValue ?? widget.position.inMilliseconds.toDouble(), widget.duration.inMilliseconds.toDouble()),
             onChanged: (value) {
-              if (widget.onChanged != null) {
-                widget.onChanged!(Duration(milliseconds: value.round()));
-              }
+              setState(() {
+                _dragValue = value;
+                if (widget.onChanged != null) {
+                  widget.onChanged!(Duration(milliseconds: value.round()));
+                }
+              });
             },
             onChangeEnd: (value) {
               if (widget.onChangeEnd != null) {
                 widget.onChangeEnd!(Duration(milliseconds: value.round()));
               }
+              _dragValue = null;
             },
           ),
         ),
@@ -394,37 +400,39 @@ void _selectAudioSpeedDialog({
 }) {
   showDialog<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(32.0),
-        ),
-      ),
-      title: Text(title, textAlign: TextAlign.center),
-      content: StreamBuilder<double>(
-        stream: stream,
-        builder: (context, snapshot) => Container(
-          height: 100.0,
-          child: Column(
-            children: [
-              Text(
-                '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24.0,
-                ),
-              ),
-              Slider(
-                divisions: divisions,
-                min: min,
-                max: max,
-                value: snapshot.data ?? 1.0,
-                onChanged: onChanged,
-              ),
-            ],
+    builder: (context) {
+      return AlertDialog(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(32.0),
           ),
         ),
-      ),
-    ),
+        title: Text(title, textAlign: TextAlign.center),
+        content: StreamBuilder<double>(
+          stream: stream,
+          builder: (context, snapshot) => Container(
+            height: 100.0,
+            child: Column(
+              children: [
+                Text(
+                  '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24.0,
+                  ),
+                ),
+                Slider(
+                  divisions: divisions,
+                  min: min,
+                  max: max,
+                  value: snapshot.data ?? 1.0,
+                  onChanged: onChanged,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
   );
 }

@@ -1,4 +1,13 @@
-enum Sort { standart, author, executor, title }
+enum Sort {
+  standart,
+  author,
+  executor,
+  title;
+
+  factory Sort.fromValue(String value) {
+    return values.firstWhere((element) => element.text == value);
+  }
+}
 
 extension SortExt on Sort {
   String get text {

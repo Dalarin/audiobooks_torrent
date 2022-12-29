@@ -19,8 +19,9 @@ class RutrackerApi {
   /// The [proxyUrl] variable should have the form username:password@host:port,
   ///
   /// in the absence of a login and password, the variable should have the form host:port
-  ///
   /// Example with login and password: jafprrvt:rnvnodrqf6p2@185.199.229.156:7492
+  ///
+  /// The [cookieDirectory] is the directory for storing cookies files
   Future<List<Object>> create({required String proxyUrl, required String cookieDirectory}) async {
     var cookieJar = PersistCookieJar(storage: FileStorage(cookieDirectory));
     _dio.useProxy(proxyUrl);
@@ -33,6 +34,9 @@ class RutrackerApi {
   }
 
   /// Use it for authentication.
+  /// [login] is your username on the site rutracker.org
+  ///
+  /// [password] is your password on the site
   Future<bool> authentication({
     required String login,
     required String password,
@@ -46,10 +50,10 @@ class RutrackerApi {
     return _parser.parsePage(document);
   }
 
-  Future<List<Map<String, dynamic>>> getComments({required String link, String start = '0'}) async {
+  Future<List<Map<String, dynamic>>> getComments({required String link, int start = 0}) async {
     Response response = await _pageProvider.getCommentsResponse(link, start);
     Document document = parse(response.data);
-    return _parser.parseCommentsResponse(document);
+    return _parser.parseCommentsResponse(document, start);
   }
 
   Future<List<Map<String, dynamic>>> searchByQuery({required String query, required Categories categories}) async {

@@ -15,10 +15,8 @@ class BookList {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'title': title,
-      'description': description,
-      'books': books,
+      'description': description
     };
   }
 
@@ -27,7 +25,7 @@ class BookList {
       id: map['id'] as int,
       title: map['title'] as String,
       description: map['description'] as String,
-      books: map['books'] as List<Book>,
+      books: List.of(map['books']).map((e) => Book.fromMapDb(e)).toList(),
     );
   }
 

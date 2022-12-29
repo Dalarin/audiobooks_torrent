@@ -44,7 +44,7 @@ class TorrentBloc extends Bloc<TorrentEvent, TorrentState> {
     }
   }
 
-  void _startTorrent(StartTorrent event, Emitter<TorrentState> emit) async {
+  void _startTorrent(StartTorrent event, emit) async {
     try {
       var directory = await getApplicationDocumentsDirectory(); // Получаем директорию приложения
       var torrentFile = Directory('${directory.path}/torrents/${event.book.id}.torrent');

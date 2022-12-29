@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/elements/book.dart';
 import 'package:rutracker_app/elements/create_list_dialog.dart';
+import 'package:rutracker_app/pages/list_page.dart';
 import 'package:rutracker_app/providers/enums.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/repository/list_repository.dart';
@@ -108,7 +110,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         setter.call(() {
           currentSort = sort;
           final bloc = context.read<BookBloc>();
-          bloc.add(GetFavoritesBooks(sortOrder: sort));
+          bloc.add(GetFavoritesBooks(sortOrder: sort, limit: 400));
         });
       },
     );
@@ -193,7 +195,6 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-
   Widget _bookList(BuildContext context, List<Book> books) {
     if (books.isNotEmpty) {
       return SizedBox(
@@ -225,7 +226,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: BlocConsumer<BookBloc, BookState>(
-          bloc: bloc..add(const GetFavoritesBooks(sortOrder: Sort.standart)),
+          bloc: bloc..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 400)),
           listener: (context, state) {
             if (state is BookError) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -277,62 +278,159 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _listElement(BookList bookList) {
-    return ListTile(
-      title: Text(bookList.title),
-      subtitle: Text(
-        bookList.description,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
+  Widget _cachedImage(Book book, double width, double height) {
+    return Image(
+      image: CachedNetworkImageProvider(book.image),
+      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
+      filterQuality: FilterQuality.high,
+      fit: BoxFit.cover,
+    );
+  }
+
+  Widget _networkImage(Book book, double width, double height) {
+    return Image.network(
+      book.image,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
+      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.high,
+      width: width * 0.22,
+    );
+  }
+
+  Widget _errorImage(double width, double height) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.0),
+      child: SizedBox(
+        width: width * 0.18,
+        height: width * 0.17,
+        child: Image.asset(
+          'assets/cover.jpg',
+          repeat: ImageRepeat.repeat,
+        ),
       ),
     );
   }
 
-  Widget _listList(BuildContext context, List<BookList> list) {
-    if (list.isNotEmpty) {
-      return Column(
-        children: [
-          ListView.builder(
-            itemBuilder: (context, index) {
-              return _listElement(list[index]);
-            },
-            itemCount: list.length,
-            shrinkWrap: true,
-          ),
-          _addListButton(context, list),
-        ],
+  Widget? _imageStack(BuildContext context, BookList bookList) {
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    if (bookList.books.isNotEmpty) {
+      var items = bookList.books
+          .asMap()
+          .map((index, item) {
+            final value = ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                margin: EdgeInsets.only(left: (35 * index).toDouble()),
+                width: width * 0.2,
+                height: height * 0.4,
+                child: _networkImage(item, width, height),
+              ),
+            );
+            return MapEntry(index, value);
+          })
+          .values
+          .toList();
+      items = items.sublist(0, items.length >= 2 ? 2 : items.length);
+      return Stack(
+        clipBehavior: Clip.none,
+        children: items,
       );
     }
+    return null;
+  }
+
+  Widget _listElement(BuildContext context, BookList bookList) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) {
+              return BlocProvider.value(
+                value: context.read<ListBloc>(),
+                child: ListPage(
+                  list: bookList,
+                  authenticationBloc: widget.authenticationBloc,
+                ),
+              );
+            },
+          ),
+        );
+      },
+      child: Card(
+        child: ListTile(
+          visualDensity: const VisualDensity(vertical: 4),
+          title: Text(
+            bookList.title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          leading: _imageStack(context, bookList),
+          subtitle: Text(
+            bookList.description,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _listListView(BuildContext context, List<BookList> list) {
+    if (list.isNotEmpty) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.68,
+        child: ListView.builder(
+          itemBuilder: (_, index) => _listElement(context, list[index]),
+          itemCount: list.length,
+          shrinkWrap: true,
+        ),
+      );
+    }
+    return _emptyListWidget(context, 'Отсутствуют созданные списки');
+  }
+
+  Widget _listList(BuildContext context, List<BookList> list) {
     return Column(
       children: [
-        _emptyListWidget(context, 'Отсутствуют созданные списки'),
-        _addListButton(context, []),
+        _listListView(context, list),
+        _addListButton(context, list),
       ],
     );
   }
 
   Widget _listOfBooksListBuilder(BuildContext context) {
-    return BlocConsumer<ListBloc, ListState>(
-      bloc: context.read<ListBloc>()..add(GetLists()),
-      builder: (context, state) {
-        if (state is ListLoaded) {
-          return _listList(context, state.list);
-        } else if (state is ListLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        return _listList(context, []);
-      },
-      listener: (context, state) {
-        if (state is ListError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-            ),
-          );
-        }
-      },
+    return Expanded(
+      child: BlocConsumer<ListBloc, ListState>(
+        bloc: context.read<ListBloc>()..add(GetLists()),
+        builder: (context, state) {
+          if (state is ListLoaded) {
+            return _listList(context, state.list);
+          } else if (state is ListLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return _listList(context, []);
+        },
+        listener: (context, state) {
+          if (state is ListError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -360,7 +458,11 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       ),
       child: Builder(
         builder: (context) {
-          return _listOfBooksListBuilder(context);
+          return Column(
+            children: [
+              _listOfBooksListBuilder(context),
+            ],
+          );
         },
       ),
     );

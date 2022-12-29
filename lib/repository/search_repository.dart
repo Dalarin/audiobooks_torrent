@@ -9,17 +9,15 @@ class SearchRepository {
 
   Future<List<QueryResponse>?> searchByText(String text) async {
     final response = await api.searchByQuery(query: text, categories: Categories.all);
-    List<QueryResponse> responses = response.map((response) {
+    return response.map((response) {
       return QueryResponse.fromMap(response);
     }).toList();
-    return responses;
   }
 
   Future<List<QueryResponse>?> searchByGenre(Categories categories) async {
     final response = await api.searchByQuery(query: '', categories: categories);
-    List<QueryResponse> responses = response.map((response) {
+    return response.map((response) {
       return QueryResponse.fromMap(response);
     }).toList();
-    return responses;
   }
 }

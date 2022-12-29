@@ -42,8 +42,8 @@ class Parser {
       return 'Не найдено';
     }
   }
-  
-  String _findImage(Element element ){
+
+  String _findImage(Element element) {
     try {
       String? image = element.getElementsByClassName('postImg postImgAligned img-right').first.attributes['title'];
       return image ?? 'nothing';
@@ -52,23 +52,32 @@ class Parser {
     }
   }
 
-  List<Map<String, dynamic>> parseCommentsResponse(Document document) {
+  String _findImageInComment(Element element) {
+    try {
+      String? image = element.getElementsByClassName('avatar').first.children.first.attributes['src'];
+      image ??= 'nothing';
+      return image;
+    } catch (exception) {
+      return 'nothing';
+    }
+  }
+
+  List<Map<String, dynamic>> parseCommentsResponse(Document document, int start) {
     List<Map<String, dynamic>> response = [];
     try {
-      print(document.getElementsByClassName('topic'));
-      Element element = document.getElementsByClassName('topic').first;
-      List<Element> commentsElements = element.getElementsByTagName('tbody');
-      commentsElements = commentsElements.sublist(1);
-      for (Element comment in commentsElements) {
-        Element mainInfo = comment.getElementsByClassName('poster_info td1 hide-for-print').first;
-        String message = comment.getElementsByClassName('message td2').first.getElementsByClassName('post_body').first.text;
-        response.add({
-          'nickname': comment.getElementsByClassName('nick').first.text,
-          'avatar': comment.getElementsByTagName('img').first.attributes['title'],
-          'date': comment.getElementsByClassName('p-link small').first.text,
-        });
+      Element? element = document.getElementById('topic_main');
+      if (element != null) {
+        for (Element comment in element.children.sublist(2)) {
+          response.add({
+            'nickname': comment.getElementsByClassName('nick').first.text.trim(),
+            'avatar': _findImageInComment(comment),
+            'date': comment.getElementsByClassName('p-link small').first.text.trim(),
+            'message': comment.getElementsByClassName('post_body').first.text.trim(),
+          });
+        }
       }
     } catch (exception) {
+      print(exception);
       throw Exception('Ошибка получения комментариев');
     }
     return response;

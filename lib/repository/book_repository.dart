@@ -1,4 +1,5 @@
 import 'package:rutracker_api/rutracker_api.dart';
+import 'package:rutracker_app/models/comment.dart';
 import 'package:rutracker_app/models/listening_info.dart';
 import 'package:rutracker_app/providers/enums.dart';
 
@@ -29,7 +30,14 @@ class BookRepository {
     );
   }
 
-  Future<List<Book>?> fetchFavoritesBooks(Sort order) => _database.readFavoriteBooks(order);
+  Future<List<Comment>?> fetchComments(int bookId, int start) async {
+    var map = await api.getComments(link: bookId.toString(), start: start);
+    return map.map((comment) {
+      return Comment.fromMap(comment);
+    }).toList();
+  }
+
+  Future<List<Book>?> fetchFavoritesBooks(Sort order, int limit) => _database.readFavoriteBooks(order, limit);
 
   Future<Book?> fetchBook(int bookId) => _database.readBook(bookId);
 

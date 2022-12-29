@@ -29,12 +29,16 @@ class PageProvider {
   }
 
   static Future<bool> _checkAuthentication(Dio dio, PageProvider pageProvider) async {
-    Response response = await dio.get('https://rutracker.org/forum/tracker.php');
-    if (response.data.contains('logged-in-username')) {
-      pageProvider._authenticated = true;
+    try {
+      Response response = await dio.get('https://rutracker.org/forum/tracker.php');
+      if (response.data.contains('logged-in-username')) {
+        pageProvider._authenticated = true;
+        return Future.value(true);
+      }
+      return Future.value(false);
+    } on DioError {
       return Future.value(true);
     }
-    return Future.value(false);
   }
 
   Future<bool> authentication(String username, String password) async {
@@ -45,7 +49,7 @@ class PageProvider {
         'login_password': password,
         'login': 'Вход',
       }),
-    ).then((Response response) {
+    ).then((Response response) async {
       if (response.statusCode == 302) {
         String cookies = response.headers['set-cookie'].toString();
         cookies = cookies.substring(
@@ -53,7 +57,7 @@ class PageProvider {
           cookies.lastIndexOf('expires'),
         );
         _authenticated = true;
-        _cookieJar.saveFromResponse(Uri.parse(_host), [Cookie.fromSetCookieValue(cookies)]);
+        await _cookieJar.saveFromResponse(Uri.parse(_host), [Cookie.fromSetCookieValue(cookies)]);
         return true;
       } else {
         throw AuthenticationError('Ошибка авторизации');
@@ -70,7 +74,7 @@ class PageProvider {
         _searchUrl,
         data: FormData.fromMap({
           "nm": query,
-          'o': '10',
+          'o': '10', // SORT BY SEEDERS
           'f': categories.code,
         }),
         options: Options(
@@ -81,8 +85,8 @@ class PageProvider {
     }
   }
 
-  Future<Response> getCommentsResponse(String link, String start) async {
-    Map<String, dynamic> parameters = start == '0' ? {'t': link} : {'t': link, 'start': start};
+  Future<Response> getCommentsResponse(String link, int start) async {
+    Map<String, dynamic> parameters = start == 0 ? {'t': link} : {'t': link, 'start': start};
     if (!_authenticated) {
       throw AuthenticationError('Пользователь не авторизован');
     } else {

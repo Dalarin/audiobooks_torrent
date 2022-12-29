@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/pages/book_page.dart';
+import 'package:rutracker_app/repository/list_repository.dart';
 
 import '../bloc/book_bloc/book_bloc.dart';
+import '../bloc/list_bloc/list_bloc.dart';
 import '../models/book.dart';
+import '../models/book_list.dart';
 
 class BookElement extends StatelessWidget {
   final Book book;
@@ -19,10 +22,6 @@ class BookElement extends StatelessWidget {
     required this.books,
     required this.authenticationBloc,
   }) : super(key: key);
-
-  ///
-  /// ListTile(
-  //       ),
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +177,6 @@ class BookElement extends StatelessWidget {
                   icon: const Icon(Icons.check),
                   title: !book.listeningInfo.isCompleted ? 'Отметить прослушанным' : 'Отметить непрослушанным',
                   function: (context) {
-                    // TODO: Отметить прослушанным
                     book.listeningInfo.isCompleted = !book.listeningInfo.isCompleted;
                     final bloc = context.read<BookBloc>();
                     bloc.add(UpdateBook(book: book, books: books));
@@ -192,7 +190,7 @@ class BookElement extends StatelessWidget {
                   icon: const Icon(Icons.list_alt_rounded),
                   title: 'Списки',
                   function: (context) {
-                    // TODO: Выбор списков
+                    _listSelectionDialog(context, book);
                   },
                 ),
                 const Divider(),
@@ -222,6 +220,104 @@ class BookElement extends StatelessWidget {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _emptyListWidget(BuildContext context, String text) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 80,
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 16),
+      ),
+    );
+  }
+
+  Widget _listOfLists(BuildContext context, List<BookList> list, Book book, StateSetter setter) {
+    if (list.isNotEmpty) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: ListView.separated(
+          shrinkWrap: true,
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            return CheckboxListTile(
+              value: list[index].books.contains(book),
+              title: Text(list[index].title),
+              onChanged: (bool? value) {
+                setter.call(() {
+                  final bloc = context.read<ListBloc>();
+                  if (value == true) {
+                    list[index].books.add(book);
+                    bloc.add(AddBook(bookList: list[index], book: book));
+                  } else {
+                    list[index].books.remove(book);
+                    bloc.add(RemoveBook(bookList: list[index], book: book));
+                  }
+                });
+              },
+            );
+          },
+        ),
+      );
+    }
+    return _emptyListWidget(
+      context,
+      'Здесь будут находиться ваши списки',
+    );
+  }
+
+  Widget _listOfListBuilder(BuildContext context, Book book, StateSetter setter) {
+    return BlocProvider(
+      create: (context) => ListBloc(
+        repository: ListRepository(),
+      )..add(GetLists()),
+      child: BlocBuilder<ListBloc, ListState>(
+        builder: (context, state) {
+          if (state is ListLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ListLoaded) {
+            return _listOfLists(context, state.list, book, setter);
+          } else if (state is ListError) {
+            return Center(child: Text(state.message));
+          }
+          return _listOfLists(context, [], book, setter);
+        },
+      ),
+    );
+  }
+
+  void _listSelectionDialog(BuildContext context, Book book) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, stateSetter) {
+            return Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 15,
+                vertical: 8,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Выбор списков',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.start,
+                  ),
+                  _listOfListBuilder(context, book, stateSetter),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -262,10 +358,7 @@ class BookElement extends StatelessWidget {
         progressColor: book.listeningInfo.isCompleted ? const Color(0xFF00C400) : Theme.of(context).colorScheme.primary,
         animation: true,
         radius: 15.0,
-        percent: _percentValue(
-          value: book.listeningInfo.index / book.listeningInfo.maxIndex,
-          book: book
-        ),
+        percent: _percentValue(value: book.listeningInfo.index / book.listeningInfo.maxIndex, book: book),
       );
     }
     return const SizedBox();
