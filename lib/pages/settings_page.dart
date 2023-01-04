@@ -1,14 +1,45 @@
-// ignore_for_file: prefer_const_constructors_in_immutables
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/providers/theme_manager.dart';
+import 'package:rutracker_app/models/proxy.dart';
+import 'package:rutracker_app/providers/settings_manager.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
+  final SettingsNotifier notifier;
 
-  const SettingsPage({Key? key, required this.authenticationBloc}) : super(key: key);
+  const SettingsPage({
+    Key? key,
+    required this.authenticationBloc,
+    required this.notifier,
+  }) : super(key: key);
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late final TextEditingController hostController;
+  late final TextEditingController portController;
+  late final TextEditingController userController;
+  late final TextEditingController passwordController;
+
+  @override
+  void initState() {
+    Proxy proxy = widget.notifier.proxy;
+    hostController = TextEditingController();
+    hostController.text = widget.notifier.proxy.host;
+    portController = TextEditingController();
+    portController.text = widget.notifier.proxy.port;
+    userController = TextEditingController();
+    passwordController = TextEditingController();
+    if (proxy.username != null && proxy.password != null) {
+      userController.text = proxy.username!;
+      passwordController.text = proxy.password!;
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +73,8 @@ class SettingsPage extends StatelessWidget {
 
   Widget _gridColorElement(BuildContext context, Color color, SettingsNotifier notifier) {
     return InkWell(
-      onTap: () {
-        notifier.color = color;
-      },
+      onTap: () => notifier.color = color,
+      borderRadius: BorderRadius.circular(40),
       child: CircleAvatar(
         backgroundColor: color,
         child: notifier.color == color ? const Icon(Icons.check) : null,
@@ -84,6 +114,85 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  void _showProxySettingsDialog(BuildContext context, SettingsNotifier notifier) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Настройка прокси'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Поля Имя пользователя и Пароль являются опциональными. '
+                'Настройки будут применены после перезагрузки приложения',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.justify,
+              ),
+              _textField(
+                context: context,
+                controller: hostController,
+                hint: 'Хост (ip-адрес)',
+                formatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'\d*\.?\d*')),
+                ],
+              ),
+              _textField(
+                context: context,
+                controller: portController,
+                hint: 'Порт',
+                formatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(5),
+                ],
+              ),
+              _textField(
+                context: context,
+                controller: userController,
+                hint: 'Имя пользователя',
+              ),
+              _textField(
+                context: context,
+                controller: passwordController,
+                hint: 'Пароль',
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Сохранить'),
+              onPressed: () {
+                notifier.proxy = Proxy(
+                  host: hostController.text,
+                  port: portController.text,
+                  username: userController.text,
+                  password: passwordController.text,
+                );
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _textField({
+    required BuildContext context,
+    required TextEditingController controller,
+    required String hint,
+    List<TextInputFormatter> formatters = const [],
+  }) {
+    return TextField(
+      controller: controller,
+      inputFormatters: formatters,
+      decoration: InputDecoration(
+        hintText: hint,
+        label: Text(hint),
+      ),
+    );
+  }
+
   Widget _colorSettings(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
       onTap: () => _selectColorDialog(context, settingsNotifier),
@@ -96,7 +205,7 @@ class SettingsPage extends StatelessWidget {
 
   Widget _proxySettings(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
-      onTap: () {},
+      onTap: () => _showProxySettingsDialog(context, settingsNotifier),
       title: Text(
         'Настройка прокси',
         style: Theme.of(context).textTheme.titleMedium,
