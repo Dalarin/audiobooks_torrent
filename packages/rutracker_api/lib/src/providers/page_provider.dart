@@ -3,9 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:rutracker_api/src/providers/enums.dart';
 import 'package:rutracker_api/src/providers/exceptions.dart';
-import 'package:cookie_jar/cookie_jar.dart';
-
-import 'cp1251_decoder.dart';
 
 class PageProvider {
   late String _host;
@@ -14,17 +11,16 @@ class PageProvider {
   late String _topicUrl;
   bool _authenticated = false;
   final Dio _dio;
-  final PersistCookieJar _cookieJar;
 
-  PageProvider._create(this._dio, this._cookieJar) {
+  PageProvider._create(this._dio) {
     _host = 'https://rutracker.org';
     _loginUrl = '$_host/forum/login.php';
     _searchUrl = '$_host/forum/tracker.php';
     _topicUrl = '$_host/forum/viewtopic.php';
   }
 
-  static Future<List<Object>> create(Dio dio, PersistCookieJar cookieJar) async {
-    var component = PageProvider._create(dio, cookieJar);
+  static Future<List<Object>> create(Dio dio) async {
+    var component = PageProvider._create(dio);
     return [component, await _checkAuthentication(dio, component)];
   }
 
@@ -36,34 +32,29 @@ class PageProvider {
         return Future.value(true);
       }
       return Future.value(false);
-    } on DioError {
+    } on DioError catch (error) {
+      if (error.message.contains('HttpException')) {
+        return Future.value(false);
+      }
       return Future.value(true);
     }
   }
 
   Future<bool> authentication(String username, String password) async {
-    await _dio.post(
+    Response response = await _dio.post(
       _loginUrl,
       data: FormData.fromMap({
         'login_username': username,
         'login_password': password,
         'login': 'Вход',
       }),
-    ).then((Response response) async {
-      if (response.statusCode == 302) {
-        String cookies = response.headers['set-cookie'].toString();
-        cookies = cookies.substring(
-          cookies.indexOf('bb_session'),
-          cookies.lastIndexOf('expires'),
-        );
-        _authenticated = true;
-        await _cookieJar.saveFromResponse(Uri.parse(_host), [Cookie.fromSetCookieValue(cookies)]);
-        return true;
-      } else {
-        throw AuthenticationError('Ошибка авторизации');
-      }
-    });
-    return false;
+    );
+    if (response.statusCode == 302) {
+      _authenticated = true;
+      return true;
+    } else {
+      throw AuthenticationError('Ошибка авторизации');
+    }
   }
 
   Future<Response> searchByQuery(String query, Categories categories) async {
@@ -77,9 +68,6 @@ class PageProvider {
           'o': '10', // SORT BY SEEDERS
           'f': categories.code,
         }),
-        options: Options(
-          responseDecoder: (codeUnits, _, __) => Cp1251Decoder().decode(codeUnits),
-        ),
       );
       return response;
     }
@@ -93,9 +81,6 @@ class PageProvider {
       Response response = await _dio.get(
         _topicUrl,
         queryParameters: parameters,
-        options: Options(
-          responseDecoder: (codeUnits, _, __) => Cp1251Decoder().decode(codeUnits),
-        ),
       );
       if (response.statusCode == 200) {
         return response;
@@ -112,9 +97,6 @@ class PageProvider {
       Response response = await _dio.get(
         _topicUrl,
         queryParameters: {'t': link},
-        options: Options(
-          responseDecoder: (codeUnits, _, __) => Cp1251Decoder().decode(codeUnits),
-        ),
       );
       if (response.statusCode == 200) {
         return response;

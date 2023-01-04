@@ -6,6 +6,7 @@ import 'package:dio_proxy_adapter/dio_proxy_adapter.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:rutracker_api/rutracker_api.dart';
+import 'package:rutracker_api/src/providers/cp1251_decoder.dart';
 import 'package:rutracker_api/src/providers/enums.dart';
 import 'package:rutracker_api/src/providers/page_provider.dart';
 import 'package:rutracker_api/src/providers/parser.dart';
@@ -23,12 +24,14 @@ class RutrackerApi {
   ///
   /// The [cookieDirectory] is the directory for storing cookies files
   Future<List<Object>> create({required String proxyUrl, required String cookieDirectory}) async {
-    var cookieJar = PersistCookieJar(storage: FileStorage(cookieDirectory));
     _dio.useProxy(proxyUrl);
-    _dio.interceptors.add(CookieManager(cookieJar));
-    _dio.options = BaseOptions(validateStatus: (status) => status! < 500);
+    _dio.interceptors.add(CookieManager(PersistCookieJar(storage: FileStorage(cookieDirectory))));
+    _dio.options = BaseOptions(
+      validateStatus: (status) => status! < 500,
+      responseDecoder: (codeUnits, _, __) => Cp1251Decoder().decode(codeUnits),
+    );
     _parser = Parser();
-    List<Object> object = await PageProvider.create(_dio, cookieJar);
+    List<Object> object = await PageProvider.create(_dio);
     _pageProvider = object[0] as PageProvider;
     return [this, object[1]];
   }
