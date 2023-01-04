@@ -1,11 +1,13 @@
 import 'dart:developer';
 
 import 'package:path/path.dart';
-import 'package:rutracker_app/rutracker/models/book.dart';
-import 'package:rutracker_app/rutracker/models/list.dart';
-import 'package:rutracker_app/rutracker/models/list_object.dart';
-import 'package:rutracker_app/rutracker/models/listeningInfo.dart' as listen;
+import 'package:rutracker_app/providers/enums.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../models/book.dart';
+import '../models/book_list.dart';
+import '../models/list_object.dart';
+import '../models/listening_info.dart';
 
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
@@ -25,32 +27,24 @@ class DBHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path,
-        version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
-  }
-
-  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    switch (newVersion) {
-      case 2:
-        _createListObjectTable(db);
-        _createListTable(db);
-        break;
-      case 3:
-        _createListeningInfo(db);
-    }
+    return await openDatabase(
+      path,
+      version: 3,
+      onCreate: _createDB,
+    );
   }
 
   void _createListeningInfo(Database db) async {
     try {
       await db.execute('''
-      CREATE TABLE IF NOT EXISTS listeningInfo(
+      CREATE TABLE IF NOT EXISTS listening_info(
       bookID $integerType,
       maxIndex $integerType,
       'index' $integerType,
       speed REAL,
       position $integerType,
       isCompleted $integerType,
-      FOREIGN KEY(bookID) REFERENCES $book_tableName(${BookFields.id}) ON DELETE CASCADE)
+      FOREIGN KEY(bookID) REFERENCES Book(id) ON DELETE CASCADE)
       ''');
     } catch (_) {
       log('Cant create table listeningInfo');
@@ -60,55 +54,56 @@ class DBHelper {
   void _createListTable(Database db) async {
     try {
       await db.execute('''
-    CREATE TABLE IF NOT EXISTS $list_tablename(
-      ${ListFields.id} $integerType PRIMARY KEY AUTOINCREMENT,
-      ${ListFields.name} $textType,
-      ${ListFields.cover} $textType,
-      ${ListFields.description} $textType
+    CREATE TABLE IF NOT EXISTS list(
+      id $integerType PRIMARY KEY AUTOINCREMENT,
+      title $textType,
+      description $textType
     )
     ''');
     } catch (_) {
-      log("Cant create table $list_tablename");
+      log("Cant create table List");
     }
   }
 
   void _createListObjectTable(Database db) async {
     try {
       await db.execute('''
-    CREATE TABLE IF NOT EXISTS $object_tablename(
-      ${ListObjectFields.idBook} $integerType,
-      ${ListObjectFields.idList} $integerType,
-      FOREIGN KEY(${ListObjectFields.idBook}) REFERENCES $book_tableName(${BookFields.id}) ON DELETE CASCADE,
-      FOREIGN KEY(${ListObjectFields.idList}) REFERENCES $list_tablename(${ListFields.id}) ON DELETE CASCADE
+    CREATE TABLE IF NOT EXISTS list_object(
+      id_book $integerType,
+      id_list $integerType,
+      FOREIGN KEY(id_book) REFERENCES Book(id) ON DELETE CASCADE,
+      FOREIGN KEY(id_list) REFERENCES List(id) ON DELETE CASCADE
     )     
     ''');
     } catch (_) {
-      log('Cant create table $object_tablename');
+      log('Cant create table List_Object');
+      throw Exception('Невозможно создать таблицу List_Object');
     }
   }
 
   void _createBookTable(Database db) async {
     try {
       await db.execute('''
-    CREATE TABLE $book_tableName(
-      ${BookFields.id} $integerType UNIQUE,
-      ${BookFields.title} $textType,
-      ${BookFields.releaseYear} $textType,
-      ${BookFields.author} $textType,
-      ${BookFields.genre} $textType,
-      ${BookFields.executor} $textType,
-      ${BookFields.bitrate} $textType,
-      ${BookFields.image} $textType,
-      ${BookFields.time} $textType,
-      ${BookFields.size} $textType,
-      ${BookFields.series} $textType,
-      ${BookFields.description} $textType,
-      ${BookFields.bookNumber} $textType,
-      ${BookFields.isFavorited} $integerType,
-      ${BookFields.isDownloaded} $integerType)
+    CREATE TABLE book(
+      id $integerType UNIQUE,
+      title $textType,
+      release_year $textType,
+      author $textType,
+      genre $textType,
+      executor $textType,
+      bitrate $textType,
+      image $textType,
+      time $textType,
+      size $textType,
+      series $textType,
+      description $textType,
+      book_number $textType,
+      isFavorite $integerType,
+      isDownloaded $integerType)
     ''');
     } catch (_) {
-      log("Cant create table $book_tableName");
+      log("Cant create table Book");
+      throw Exception('Невозможно создать таблицу Book');
     }
   }
 
@@ -118,170 +113,160 @@ class DBHelper {
       _createListObjectTable(db);
       _createListTable(db);
       _createListeningInfo(db);
-      log("Database created");
     } catch (E) {
       log("Database NOT created");
+      throw Exception('Ошибка создания базы данных');
+    } finally {
+      log("Database created");
     }
   }
 
   Future<Book> createBook(Book book) async {
     final db = await instance.database;
-    final id = await db.insert(book_tableName, book.toMap());
-    createListeningInfo(book.listeningInfo);
-    return book.copyWith(id: id);
+    final bookId = (await updateBook(book))!.id;
+    await db.insert('listening_info', book.listeningInfo.toJson());
+    return book.copyWith(
+      id: bookId,
+      listeningInfo: book.listeningInfo.copyWith(bookID: bookId),
+    );
   }
 
-  Future<listen.listeningInfo> createListeningInfo(
-      listen.listeningInfo listeningInfo) async {
+  Future<bool> deleteBook(int bookId) async {
     final db = await instance.database;
-    final id = await db.insert('listeningInfo', listeningInfo.toMap());
-    return listeningInfo.copyWith(bookID: id);
+    int count = await db.delete('book', where: 'id = ?', whereArgs: [bookId]);
+    return count > 0;
+  }
+
+  Future<ListeningInfo> createListeningInfo(ListeningInfo listeningInfo) async {
+    final db = await instance.database;
+    await db.insert('listening_info', listeningInfo.toJson());
+    return listeningInfo.copyWith(bookID: listeningInfo.bookID);
   }
 
   Future<ListObject> createListObject(ListObject listObject) async {
     final db = await instance.database;
-    final id = await db.insert(object_tablename, listObject.toMap());
-    return listObject.copyWith(idBook: id);
+    await db.rawQuery(
+      'INSERT OR REPLACE INTO list_object(id_book, id_list) VALUES(?, ?)',
+      [listObject.idBook, listObject.idList],
+    );
+    return listObject.copyWith(idBook: listObject.idBook);
   }
 
-  Future<void> createList(BookList list) async {
+  Future<bool> deleteListObject(ListObject listObject) async {
     final db = await instance.database;
-    db.insert(list_tablename, list.toMap());
+    final id = await db.delete(
+      'list_object',
+      where: 'id_book = ? AND id_list = ?',
+      whereArgs: [listObject.idBook, listObject.idList],
+    );
+    return id > 0;
   }
 
-  Future<List<Book>> readFavoritedBooks(
-      {required String orderBy,
-      required String orderDirection,
-      required int limit}) async {
+  Future<BookList?> createList(BookList list) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        "SELECT * FROM $book_tableName INNER JOIN listeningInfo on listeningInfo.bookID=$book_tableName.id WHERE ${BookFields.isFavorited} = ? ORDER BY $orderBy $orderDirection LIMIT $limit",
-        [1]);
-    return result.map((json) => Book.fromMaps(json)).toList();
-  }
-
-  Future<List<Book>> readDownloadedBooks() async {
-    final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $book_tableName INNER JOIN listeningInfo on listeningInfo.bookID=$book_tableName.id WHERE ${BookFields.isDownloaded} = 1');
-    return result.map((json) => Book.fromMaps(json)).toList();
-  }
-
-  Future<bool> isExist(int id) async {
-    final db = await instance.database;
-    final result = await db.query(book_tableName,
-        columns: [BookFields.id],
-        where: '${BookFields.id} = ?',
-        whereArgs: [id]);
-    return result.isNotEmpty ? true : false;
-  }
-
-  Future<List<BookList>> readLists() async {
-    final db = await instance.database;
-    final result = await db.query(list_tablename);
-    return result.map((e) => BookList.fromMap(e)).toList();
-  }
-
-  Future<listen.listeningInfo?> readListeningInfo(int bookID) async {
-    final db = await instance.database;
-    final result = await db
-        .query('listeningInfo', where: 'bookID = ?', whereArgs: [bookID]);
-    List<listen.listeningInfo> listeningInfo =
-        result.map((map) => listen.listeningInfo.fromMap(map)).toList();
-    return listeningInfo.isEmpty ? null : listeningInfo.first;
-  }
-
-  Future<List<Book>> readBook(int id) async {
-    final db = await instance.database;
-    listen.listeningInfo listeningInfo =
-        (await readListeningInfo(id)) ?? listen.listeningInfo.generateNew(id);
-    final result = await db
-        .query(book_tableName, where: '${BookFields.id} = ?', whereArgs: [id]);
-    return result.map((e) => Book.fromMap(e, listeningInfo)).toList();
-  }
-
-  Future<int> deleteBooksInsideLists(int id, int idList) async {
-    final db = await instance.database;
-    return db.delete(object_tablename,
-        where:
-            "${ListObjectFields.idBook} = ? and ${ListObjectFields.idList} = ?",
-        whereArgs: [id, idList]);
-  }
-
-  Future<int> deleteList(int id) async {
-    final db = await instance.database;
-    db.delete(object_tablename,
-        where: "${ListObjectFields.idList} = ?", whereArgs: [id]);
-    return db
-        .delete(list_tablename, where: "${ListFields.id} = ?", whereArgs: [id]);
-  }
-
-  Future<int> updateList(BookList list) async {
-    final db = await instance.database;
-    int count = await db.update(list_tablename, list.toMap(),
-        where: "${ListFields.id} = ?", whereArgs: [list.id]);
-    return count;
-  }
-
-  Future<int> updateListeningInfo(listen.listeningInfo list) async {
-    final db = await instance.database;
-    int count = await db.update('listeningInfo', list.toMap(),
-        where: "bookID = ?", whereArgs: [list.bookID]);
-    return count;
-  }
-
-  Future<int> updateBook(Book book) async {
-    bool isExist = await DBHelper.instance.isExist(book.id);
-    if (!isExist) createBook(book);
-    final db = await instance.database;
-    int count = await db.update(book_tableName, book.toMap(),
-        where: "${BookFields.id} = ?", whereArgs: [book.id]);
-    updateListeningInfo(book.listeningInfo);
-    if (!book.isDownloaded && !book.isFavorited) {
-      deleteBook(book.id);
+    final id = await db.insert('list', list.toMap());
+    for (var element in list.books) {
+      createListObject(ListObject(idList: list.id, idBook: element.id));
     }
-    return count;
+    return list.copyWith(id: id);
   }
 
-  Future<List<ListObject>> getBookInList(int idList) async {
+  Future<Book?> readBook(int bookId) async {
     final db = await instance.database;
-    final result = await db.query(object_tablename,
-        where: '${ListObjectFields.idList} = ?', whereArgs: [idList]);
-    return result.map((e) => ListObject.fromMap(e)).toList();
+    final result = await db.query('book', where: 'id = ?', whereArgs: [bookId]);
+    return result.isNotEmpty ? Book.fromMapDb(result.first) : null;
   }
 
-  Future<List<ListObject>> getBooksInList(int idBook) async {
+  Future<List<Book>?> readFavoriteBooks(Sort order, int limit) async {
     final db = await instance.database;
-    final result = await db.query(object_tablename,
-        where: '${ListObjectFields.idBook} = ?', whereArgs: [idBook]);
-    return result.map((e) => ListObject.fromMap(e)).toList();
+    final result = await db.rawQuery(
+      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isFavorite = ? ${order.query} LIMIT $limit",
+      [1],
+    );
+    return result.map((json) => Book.fromMapDb(json)).toList();
   }
 
-  Future<int> deleteListeningInfo(int idBook) async {
+  Future<List<Book>?> readDownloadedBooks() async {
     final db = await instance.database;
-    return await db
-        .delete('listeningInfo', where: 'bookID = ?', whereArgs: [idBook]);
+    final result = await db.rawQuery(
+      "SELECT * FROM 'book' INNER JOIN 'listening_info' on bookID=id WHERE isDownloaded = ? and listening_info.maxIndex > 0 LIMIT 2",
+      [1],
+    );
+    return result.map((json) => Book.fromMapDb(json)).toList();
   }
 
-  Future<int> deleteBook(int id) async {
+  Future<List<BookList>?> readLists() async {
     final db = await instance.database;
-    deleteListeningInfo(id);
-    return await db
-        .delete(book_tableName, where: '${BookFields.id} = ?', whereArgs: [id]);
+    final result = await db.rawQuery('SELECT * FROM list');
+    List<Map<String, dynamic>> res = List.from(result);
+    res = await Future.wait(res.map((element) async {
+      Map<String, dynamic> booksMap = Map.from(element);
+      booksMap['books'] = await (db.rawQuery(
+          "SELECT * FROM book INNER JOIN list_object on book.id=list_object.id_book INNER JOIN 'listening_info' on bookID=id WHERE list_object.id_list=${booksMap['id']}"));
+      return booksMap;
+    }).toList());
+    return res.map((element) => BookList.fromMap(element)).toList();
   }
 
-  Future clearTable() async {
+  Future<bool> deleteList(int listId) async {
     final db = await instance.database;
-    int count = await db.delete(book_tableName,
-        where:
-            '${BookFields.isFavorited} = ? and ${BookFields.isDownloaded} = ?',
-        whereArgs: [0, 0]);
-    log('Deleted entries: $count');
+    return await db.delete('list', where: 'id = ?', whereArgs: [listId]) > 0;
+  }
+
+  Future<BookList?> updateList(BookList list) async {
+    final db = await instance.database;
+    int count = await db.update(
+      'list',
+      list.toMap(),
+      where: "id = ?",
+      whereArgs: [list.id],
+    );
+    return count > 0 ? list : null;
+  }
+
+  Future<ListeningInfo?> updateListeningInfo(ListeningInfo listeningInfo) async {
+    final db = await instance.database;
+    var count =
+        await db.rawQuery("INSERT OR REPLACE INTO 'listening_info'(bookID, maxIndex, 'index', speed, position, isCompleted) VALUES(?,?,?,?,?,?)", [
+      listeningInfo.bookID,
+      listeningInfo.maxIndex,
+      listeningInfo.index,
+      listeningInfo.speed,
+      listeningInfo.position,
+      listeningInfo.isCompleted ? 1 : 0,
+    ]);
+    return count.isNotEmpty ? listeningInfo : null;
+  }
+
+  Future<Book?> updateBook(Book book) async {
+    final db = await instance.database;
+    await db.rawQuery(
+      "INSERT OR REPLACE INTO 'book'(id, title, release_year, author, genre, executor,"
+      "bitrate, image, time, size, series, description, book_number, isFavorite, isDownloaded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        book.id,
+        book.title,
+        book.releaseYear,
+        book.author,
+        book.genre,
+        book.executor,
+        book.bitrate,
+        book.image,
+        book.audio,
+        book.size,
+        book.series,
+        book.description,
+        book.bookNumber,
+        book.isFavorite ? 1 : 0,
+        book.isDownloaded ? 1 : 0,
+      ],
+    );
+    await updateListeningInfo(book.listeningInfo);
+    return book;
   }
 
   Future close() async {
     final db = await instance.database;
-    clearTable();
     db.close();
   }
 }

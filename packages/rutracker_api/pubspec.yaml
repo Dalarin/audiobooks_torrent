@@ -1,0 +1,17 @@
+name: rutracker_api
+description: Парсер для сайта.
+version: 1.1.0
+# homepage: https://www.example.com
+
+environment:
+  sdk: '>=2.18.3 <3.0.0'
+
+dependencies:
+  dio: ^4.0.6
+  dio_proxy_adapter: ^1.0.1
+  dio_cookie_manager: ^2.0.0
+  html: ^0.15.1
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
