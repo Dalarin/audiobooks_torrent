@@ -1,15 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/pages/audio_page.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/bloc/torrent_bloc/torrent_bloc.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/widgets/downloading_button.dart';
+import 'package:rutracker_app/widgets/image.dart';
 
-import '../bloc/book_bloc/book_bloc.dart';
-import '../bloc/torrent_bloc/torrent_bloc.dart';
-import '../models/book.dart';
-
-class BookPage extends StatelessWidget {
+class BookPage extends StatefulWidget {
   final Book book;
   final List<Book> books;
   final AuthenticationBloc authenticationBloc;
@@ -22,21 +20,37 @@ class BookPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<BookPage> createState() => _BookPageState();
+}
+
+class _BookPageState extends State<BookPage> {
+  late final TextEditingController titleController;
+  late final TextEditingController imageController;
+
+  @override
+  void initState() {
+    titleController = TextEditingController();
+    titleController.text = widget.book.title;
+    imageController = TextEditingController();
+    imageController.text = widget.book.image;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TorrentBloc(api: authenticationBloc.rutrackerApi),
+      create: (context) => TorrentBloc(api: widget.authenticationBloc.rutrackerApi),
       child: BlocBuilder<BookBloc, BookState>(
         builder: (context, state) {
           return SafeArea(
             child: Scaffold(
               extendBodyBehindAppBar: true,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              appBar: _appBar(context, book, books),
+              appBar: _appBar(context, widget.book, widget.books),
               body: CustomScrollView(
                 slivers: [
                   SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _bookPageContent(context),
+                    child: _bookPageContent(context, widget.authenticationBloc, widget.book, widget.books),
                   )
                 ],
               ),
@@ -47,47 +61,55 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  Widget _bookPageContent(BuildContext context) {
+  Widget _bookPageContent(BuildContext context, AuthenticationBloc bloc, Book book, List<Book> books) {
     return Column(
       children: [
         Stack(
           alignment: Alignment.topCenter,
           children: [
-            _coverGradientBox(context),
+            _coverGradientBox(context, book),
             Container(
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).size.height * 0.57,
               ),
               width: MediaQuery.of(context).size.width * 0.7,
-              child: _downloadButtonBuilder(
-                context: context,
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                book: book,
-              ),
+              child: DownloadingButton(book: book, bookList: books),
             ),
           ],
         ),
-        const SizedBox(
-          height: 15,
-        ),
+        const SizedBox(height: 15),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8.0,
-          ),
-          child: _aboutSection(
-            context,
-            book,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: _aboutSection(context, book),
         ),
-        const SizedBox(
-          height: 15,
-        ),
-        _descriptionSection(
-          context,
-          book,
-        ),
+        const SizedBox(height: 15),
+        _descriptionSection(context, book),
+        const SizedBox(height: 15),
+        _additionalActions(context, book, books),
       ],
+    );
+  }
+
+  Widget _additionalActions(BuildContext context, Book book, List<Book> list) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.15,
+      child: Column(
+        children: [
+          ListTile(
+            dense: true,
+            enabled: false,
+            leading: const Icon(Icons.comment),
+            title: const Text('Комментарии'),
+            onTap: () {},
+          ),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.settings),
+            title: const Text('Настройки книги'),
+            onTap: () => _showSettingsDialog(context, book, list),
+          ),
+        ],
+      ),
     );
   }
 
@@ -166,7 +188,7 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  Widget _coverGradientBox(BuildContext context) {
+  Widget _coverGradientBox(BuildContext context, Book book) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Container(
@@ -216,15 +238,11 @@ class BookPage extends StatelessWidget {
               height: height,
             );
           },
-          child: ClipRRect(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(20),
-            ),
-            child: SizedBox(
-              width: width * 0.6,
-              height: height * 0.35,
-              child: book.isDownloaded ? _cachedImage(book, width, height) : _networkImage(book, width, height),
-            ),
+          child: CustomImage(
+            book: book,
+            width: width * 0.7,
+            height: height * 0.35,
+            borderRadius: 20,
           ),
         ),
         const SizedBox(height: 15),
@@ -256,260 +274,16 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  Widget _downloadButton({
+  Widget _textField({
     required BuildContext context,
-    required Widget center,
-    required double percent,
-    required double height,
-    required double width,
-    required Book book,
+    required TextEditingController controller,
+    required String hint,
   }) {
-    return LinearPercentIndicator(
-      progressColor: Theme.of(context).colorScheme.primary,
-      center: center,
-      percent: percent,
-      lineHeight: 55,
-      animation: false,
-      barRadius: const Radius.circular(10),
-    );
-  }
-
-  Widget _downloadButtonBuilder({
-    required BuildContext context,
-    required double height,
-    required double width,
-    required Book book,
-  }) {
-    return BlocConsumer<TorrentBloc, TorrentState>(
-      listener: (context, state) {
-        if (state is TorrentError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-            ),
-          );
-        } else if (state is TorrentDownloaded) {
-          final bloc = context.read<BookBloc>();
-          book.isDownloaded = true;
-          bloc.add(UpdateBook(book: book, books: books));
-        }
-      },
-      builder: (context, state) {
-        return WillPopScope(
-          child: _getWillPopChild(
-            context: context,
-            state: state,
-            height: height,
-            width: width,
-          ),
-          onWillPop: () {
-            if (state is TorrentDownloading) {
-              return _showPreservationProgressDialog(context, book);
-            }
-            return Future.value(true);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _getWillPopChild({
-    required BuildContext context,
-    required TorrentState state,
-    required double height,
-    required double width,
-  }) {
-    if (state is TorrentDownloading) {
-      return StreamBuilder(
-        stream: state.torrentProgress,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            double percent = double.parse(snapshot.data.toString());
-            return _downloadButton(
-              context: context,
-              center: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.pause,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    '${(percent * 100).toStringAsFixed(2)} %',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              percent: percent,
-              height: height,
-              width: width,
-              book: book,
-            );
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      );
-    }
-    return _downloadButton(
-      center: _getCenterWidget(
-        context: context,
-        state: state,
-        book: book,
-        books: books,
-      ),
-      percent: 1,
-      context: context,
-      height: height,
-      width: width,
-      book: book,
-    );
-  }
-
-  void _showDeletingDialog(BuildContext context, Book book, List<Book> books) {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Удаление книги'),
-          content: Text.rich(
-            TextSpan(
-              text: 'Вы уверены, что хотите удалить книгу ',
-              children: [
-                TextSpan(
-                  text: book.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Да'),
-              onPressed: () {
-                final bloc = context.read<BookBloc>();
-                bloc.add(DeleteBook(book: book, books: books));
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _getCenterWidget({
-    required BuildContext context,
-    required TorrentState state,
-    required Book book,
-    required List<Book> books,
-  }) {
-    if (book.isDownloaded) {
-      return InkWell(
-        onLongPress: () {
-          _showDeletingDialog(context, book, books);
-        },
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) {
-                return BlocProvider.value(
-                  value: context.read<BookBloc>(),
-                  child: AudioPage(
-                    book: book,
-                    books: books,
-                  ),
-                );
-              },
-            ),
-          );
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.headphones,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
-            const SizedBox(width: 15),
-            Text(
-              'Слушать',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return InkWell(
-        onTap: () {
-          final bloc = context.read<TorrentBloc>();
-          bloc.add(StartTorrent(book: book));
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.download,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
-            const SizedBox(width: 5),
-            Text(
-              'Скачать',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-            )
-          ],
-        ),
-      );
-    }
-  }
-
-  Widget _cachedImage(Book book, double width, double height) {
-    return Image(
-      image: CachedNetworkImageProvider(book.image),
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      filterQuality: FilterQuality.high,
-      fit: BoxFit.cover,
-    );
-  }
-
-  Widget _networkImage(Book book, double width, double height) {
-    return Image.network(
-      book.image,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.high,
-      width: width * 0.22,
-    );
-  }
-
-  Widget _errorImage(double width, double height) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18.0),
-      child: SizedBox(
-        width: width * 0.18,
-        height: width * 0.17,
-        child: Image.asset(
-          'assets/cover.jpg',
-          repeat: ImageRepeat.repeat,
-        ),
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hint,
+        label: Text(hint),
       ),
     );
   }
@@ -550,15 +324,11 @@ class BookPage extends StatelessWidget {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(20),
-            ),
-            child: SizedBox(
-              width: width,
-              height: height * 0.4,
-              child: book.isDownloaded ? _cachedImage(book, width, height) : _networkImage(book, width, height),
-            ),
+          child: CustomImage(
+            book: book,
+            width: width,
+            height: height * 0.4,
+            borderRadius: 20,
           ),
         );
       },
@@ -568,7 +338,7 @@ class BookPage extends StatelessWidget {
   void _showMoreInfoDialog(BuildContext context, Book book) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext dialogContext) {
+      builder: (BuildContext _) {
         return AlertDialog(
           title: const Text('Подробная информация о книге'),
           content: Container(
@@ -596,36 +366,42 @@ class BookPage extends StatelessWidget {
     );
   }
 
-  Future<bool> _showPreservationProgressDialog(BuildContext context, Book book) async {
-    final shouldPop = await showDialog<bool>(
+  void _showSettingsDialog(BuildContext context, Book book, List<Book> books) {
+    showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Выход'),
-          content: const Text(
-            'Вы хотите сохранить прогресс скачивания?'
-            ' Вы сможете продолжить скачивание позже',
+          title: const Text('Настройки'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _textField(
+                context: context,
+                controller: titleController,
+                hint: 'Название книги',
+              ),
+              const SizedBox(height: 15),
+              _textField(
+                context: context,
+                controller: imageController,
+                hint: 'Ссылка на изображение',
+              ),
+            ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Да'),
+              child: const Text('Сохранить'),
               onPressed: () {
-                Navigator.pop(context, true);
-                // Dismiss alert dialog
+                final bloc = context.read<BookBloc>();
+                book.title = titleController.text;
+                book.image = imageController.text;
+                bloc.add(UpdateBook(book: book, books: books));
+                Navigator.of(dialogContext).pop();
               },
-            ),
-            TextButton(
-              onPressed: () {
-                final bloc = context.read<TorrentBloc>();
-                bloc.add(CancelTorrent(book: book));
-                Navigator.pop(context, true);
-              },
-              child: const Text('Нет'),
             ),
           ],
         );
       },
     );
-    return shouldPop!;
   }
 }

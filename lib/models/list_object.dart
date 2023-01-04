@@ -30,6 +30,4 @@ class ListObject {
       idBook: idBook ?? this.idBook,
     );
   }
-
-
 }

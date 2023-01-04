@@ -1,11 +1,6 @@
-// ignore_for_file: camel_case_types
-
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../models/proxy.dart';
-
 
 class StorageManager {
   static bool similarBooks = false;
@@ -18,21 +13,6 @@ class StorageManager {
       prefs.setString(key, jsonEncode(value));
     } else if (value is bool) {
       prefs.setBool(key, value);
-    }
-  }
-
-  static void saveProxy(Proxy proxy) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('proxy', jsonEncode(proxy.toJson()));
-  }
-
-  static Future<Proxy?> readProxy() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final object = prefs.getString("proxy");
-    if (object != null) {
-      return Proxy.fromJson(jsonDecode(object));
-    } else {
-      return null;
     }
   }
 
@@ -52,5 +32,4 @@ class StorageManager {
     dynamic object = prefs.get(key);
     return object;
   }
-
 }

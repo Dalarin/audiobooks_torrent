@@ -1,10 +1,9 @@
 import 'package:rutracker_api/rutracker_api.dart';
+import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/models/comment.dart';
 import 'package:rutracker_app/models/listening_info.dart';
+import 'package:rutracker_app/providers/database.dart';
 import 'package:rutracker_app/providers/enums.dart';
-
-import '../models/book.dart';
-import '../providers/database.dart';
 
 class BookRepository {
   final _database = DBHelper.instance;

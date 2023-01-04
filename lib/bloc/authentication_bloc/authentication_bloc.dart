@@ -4,9 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rutracker_api/rutracker_api.dart';
-import '../../models/proxy.dart';
-
-import '../../providers/storage_manager.dart';
+import 'package:rutracker_app/providers/settings_manager.dart';
 
 part 'authentication_event.dart';
 
@@ -14,8 +12,9 @@ part 'authentication_state.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   late final RutrackerApi rutrackerApi;
+  final SettingsNotifier notifier;
 
-  AuthenticationBloc() : super(AuthenticationInitial()) {
+  AuthenticationBloc(this.notifier) : super(AuthenticationInitial()) {
     on<ApplicationStarted>((event, emit) => _applicationStarted(event, emit));
     on<Authentication>((event, emit) => _authentication(event, emit));
   }
@@ -29,11 +28,13 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       _initDirectory("torrents");
       _initDirectory("books");
       Directory appDocDir = await getApplicationDocumentsDirectory();
-      Proxy? proxy = await StorageManager.readProxy();
-      proxy ??= Proxy.standartProxy;
-      String proxyUrl = '${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}';
-      List<Object> objects = await RutrackerApi().create(proxyUrl: proxyUrl, cookieDirectory: "${appDocDir.path}/.cookies/");
+      appDocDir = Directory('${appDocDir.path}/.cookies/');
+      List<Object> objects = await RutrackerApi().create(
+        proxyUrl: notifier.proxy.url,
+        cookieDirectory: appDocDir.path,
+      );
       rutrackerApi = objects[0] as RutrackerApi;
+      print(objects[1]);
       if (objects[1] as bool) {
         emit(AuthenticationSuccess());
       } else {
@@ -41,8 +42,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       }
     } on AuthenticationError {
       emit(AuthenticationInitial());
-    } on Exception catch (exception) {
-      emit(AuthenticationError(message: exception.message));
+    } on Exception {
+      emit(const AuthenticationError(message: 'Ошибка аутенфикации'));
     }
   }
 
@@ -63,13 +64,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       if (event.password.isEmpty || event.username.isEmpty) {
         emit(const AuthenticationError(message: 'Заполните все поля и попробуйте снова'));
       } else {
-        Proxy? proxy = await StorageManager.readProxy();
-        proxy ??= Proxy.standartProxy;
-        bool authenticated = await rutrackerApi.authentication(
-          login: event.username,
-          password: event.password,
-        );
-        if (authenticated == true) {
+        if (await rutrackerApi.authentication(login: event.username, password: event.password)) {
           emit(AuthenticationSuccess());
         } else {
           emit(const AuthenticationError(message: 'Неверный логин и/или пароль'));

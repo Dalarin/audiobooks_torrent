@@ -1,3 +1,4 @@
+
 enum Sort {
   standart,
   author,
@@ -9,7 +10,7 @@ enum Sort {
   }
 }
 
-extension SortExt on Sort {
+extension SortExtention on Sort {
   String get text {
     switch (this) {
       case Sort.standart:
@@ -33,6 +34,29 @@ extension SortExt on Sort {
         return 'ORDER BY executor';
       case Sort.title:
         return 'ORDER BY title';
+    }
+  }
+}
+
+enum Filter {
+  downloaded,
+  completed,
+  listening;
+
+  factory Filter.fromValue(String value) {
+    return values.firstWhere((element) => element.text == value);
+  }
+}
+
+extension FilterExtension on Filter {
+  String get text {
+    switch (this) {
+      case Filter.downloaded:
+        return 'Скачанное';
+      case Filter.completed:
+        return 'Прослушанное';
+      case Filter.listening:
+        return 'В процессе прослушивания';
     }
   }
 }

@@ -1,17 +1,14 @@
-// ignore_for_file: camel_case_types, void_checks, import_of_legacy_library_into_null_safe, must_be_immutable
-
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
+import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/pages/authentication_page.dart';
 import 'package:rutracker_app/pages/favorite_page.dart';
 import 'package:rutracker_app/pages/home_page.dart';
 import 'package:rutracker_app/pages/search_page.dart';
 import 'package:rutracker_app/pages/settings_page.dart';
-import 'package:rutracker_app/providers/theme_manager.dart';
+import 'package:rutracker_app/providers/settings_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'bloc/authentication_bloc/authentication_bloc.dart';
 
 void main() async {
   JustAudioBackground.init(
@@ -36,14 +33,10 @@ class Application extends StatelessWidget {
       builder: (context, settings, _) {
         return MaterialApp(
           theme: settings.theme,
-          localizationsDelegates:  const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate
-          ],
+          localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
           supportedLocales: const [Locale('ru', 'RU'), Locale('en')],
           title: 'Аудиокниги - Торрент',
-          home: const AuthenticationPage(),
+          home: AuthenticationPage(notifier: settings),
         );
       },
     );
@@ -51,9 +44,14 @@ class Application extends StatelessWidget {
 }
 
 class BottomNavBar extends StatefulWidget {
-  AuthenticationBloc authenticationBloc;
+  final SettingsNotifier notifier;
+  final AuthenticationBloc authenticationBloc;
 
-  BottomNavBar({Key? key, required this.authenticationBloc}) : super(key: key);
+  const BottomNavBar({
+    Key? key,
+    required this.authenticationBloc,
+    required this.notifier,
+  }) : super(key: key);
 
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
@@ -66,10 +64,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   void initState() {
     _children.addAll([
-      HomePage(authenticationBloc: widget.authenticationBloc),
-      SearchPage(authenticationBloc: widget.authenticationBloc),
-      FavoritePage(authenticationBloc: widget.authenticationBloc),
-      SettingsPage(authenticationBloc: widget.authenticationBloc),
+      HomePage(
+        authenticationBloc: widget.authenticationBloc,
+      ),
+      SearchPage(
+        authenticationBloc: widget.authenticationBloc,
+      ),
+      FavoritePage(
+        authenticationBloc: widget.authenticationBloc,
+      ),
+      SettingsPage(
+        authenticationBloc: widget.authenticationBloc,
+        notifier: widget.notifier,
+      ),
     ]);
     super.initState();
   }
@@ -79,7 +86,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return Scaffold(
       extendBody: true,
       body: _children[_currentIndex],
-      bottomNavigationBar: _navigationBar(),
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: onTap,
+        selectedIndex: _currentIndex,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Дом'),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Поиск'),
+          NavigationDestination(icon: Icon(Icons.favorite), label: 'Избранное'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Настройки'),
+        ],
+      ),
     );
   }
 
@@ -88,19 +104,4 @@ class _BottomNavBarState extends State<BottomNavBar> {
       _currentIndex = index;
     });
   }
-
-  Widget _navigationBar() {
-    return NavigationBar(
-      onDestinationSelected: onTap,
-      selectedIndex: _currentIndex,
-      animationDuration: const Duration(seconds: 2),
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Дом'),
-        NavigationDestination(icon: Icon(Icons.search), label: 'Поиск'),
-        NavigationDestination(icon: Icon(Icons.favorite), label: 'Избранное'),
-        NavigationDestination(icon: Icon(Icons.settings), label: 'Настройки'),
-      ],
-    );
-  }
-
 }

@@ -1,6 +1,5 @@
 import 'package:rutracker_api/rutracker_api.dart';
-
-import '../models/query_response.dart';
+import 'package:rutracker_app/models/query_response.dart';
 
 class SearchRepository {
   RutrackerApi api;

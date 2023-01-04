@@ -2,9 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_api/rutracker_api.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-
-import '../../models/query_response.dart';
-import '../../repository/search_repository.dart';
+import 'package:rutracker_app/models/query_response.dart';
+import 'package:rutracker_app/repository/search_repository.dart';
 
 part 'search_event.dart';
 
@@ -28,8 +27,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       } else {
         emit(const SearchError(message: 'Ошибка поиска'));
       }
-    } on Exception catch (exception) {
-      emit(SearchError(message: exception.message));
+    } on Exception {
+      emit(const SearchError(message: 'Ошибка поиска'));
     }
   }
 
@@ -42,8 +41,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       } else {
         emit(const SearchError(message: 'Ошибка поиска'));
       }
-    } on Exception catch (exception) {
-      emit(SearchError(message: exception.message));
+    } on Exception {
+      emit(const SearchError(message: 'Ошибка поиска'));
     }
   }
 }

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/elements/book.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/providers/enums.dart';
-
-import '../bloc/book_bloc/book_bloc.dart';
-import '../models/book.dart';
-import '../repository/book_repository.dart';
+import 'package:rutracker_app/repository/book_repository.dart';
+import 'package:rutracker_app/widgets/book_list.dart';
 
 class HomePage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
@@ -58,30 +56,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _bookList(BuildContext context, List<Book> books) {
-    if (books.isNotEmpty) {
-      return ListView.separated(
-        shrinkWrap: true,
-        itemCount: books.length,
-        physics: const BouncingScrollPhysics(),
-        separatorBuilder: (context, index) {
-          return const SizedBox(height: 15);
-        },
-        itemBuilder: (context, index) {
-          return BookElement(
-            authenticationBloc: authenticationBloc,
-            books: books,
-            book: books[index],
-          );
-        },
-      );
-    }
-    return _emptyListWidget(
-      context,
-      'Здесь будут находиться книги в процессе прослушивания',
-    );
-  }
-
   Widget _listeningBooksListBuilder(
     BuildContext context,
     AuthenticationBloc authenticationBloc,
@@ -109,13 +83,21 @@ class HomePage extends StatelessWidget {
             },
             builder: (context, state) {
               if (state is BookLoaded) {
-                return _bookList(context, state.books);
+                return ElementsList(
+                  list: state.books,
+                  emptyListText: 'Здесь будут находиться книги в процессе прослушивания',
+                  bloc: authenticationBloc,
+                );
               } else if (state is BookLoading) {
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
-              return _bookList(context, []);
+              return ElementsList(
+                list: const [],
+                emptyListText: 'Здесь будут находиться книги в процессе прослушивания',
+                bloc: authenticationBloc,
+              );
             },
           );
         },
@@ -138,7 +120,7 @@ class HomePage extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return BlocConsumer<BookBloc, BookState>(
-            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 3)),
+            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 3, filter: [])),
             listener: (context, state) {
               if (state is BookError) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -152,30 +134,25 @@ class HomePage extends StatelessWidget {
             },
             builder: (context, state) {
               if (state is BookLoaded) {
-                return _bookList(context, state.books);
+                return ElementsList(
+                  list: state.books,
+                  emptyListText: 'Здесь будут находиться ваши избранные книги',
+                  bloc: authenticationBloc,
+                );
               } else if (state is BookLoading) {
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               } else {
-                return _bookList(context, []);
+                return ElementsList(
+                  list: const [],
+                  emptyListText: 'Здесь будут находиться ваши избранные книги',
+                  bloc: authenticationBloc,
+                );
               }
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _emptyListWidget(BuildContext context, String text) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      height: 80,
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 16),
       ),
     );
   }

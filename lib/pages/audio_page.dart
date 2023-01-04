@@ -1,15 +1,12 @@
-// ignore_for_file: avoid_print, sized_box_for_whitespace, must_be_immutable, use_key_in_widget_constructors
-
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rutracker_app/bloc/audio_bloc/audio_bloc.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/models/book.dart';
 import 'package:rxdart/rxdart.dart';
-
-import '../bloc/audio_bloc/audio_bloc.dart';
-import '../bloc/book_bloc/book_bloc.dart';
-import '../models/book.dart';
 
 class AudioPage extends StatelessWidget {
   final Book book;
@@ -148,7 +145,7 @@ class ControlButtons extends StatelessWidget {
     AlertDialog alert = AlertDialog(
       scrollable: true,
       title: const Text("Главы"),
-      content: Container(
+      content: SizedBox(
         width: double.maxFinite,
         height: MediaQuery.of(context).size.height * 0.3,
         child: StreamBuilder<SequenceState?>(
@@ -305,6 +302,7 @@ class SeekBar extends StatefulWidget {
   final ValueChanged<Duration>? onChangeEnd;
 
   const SeekBar({
+    super.key,
     required this.duration,
     required this.position,
     required this.bufferedPosition,
@@ -313,7 +311,7 @@ class SeekBar extends StatefulWidget {
   });
 
   @override
-  _SeekBarState createState() => _SeekBarState();
+  State<SeekBar> createState() => _SeekBarState();
 }
 
 class _SeekBarState extends State<SeekBar> {
@@ -410,27 +408,29 @@ void _selectAudioSpeedDialog({
         title: Text(title, textAlign: TextAlign.center),
         content: StreamBuilder<double>(
           stream: stream,
-          builder: (context, snapshot) => Container(
-            height: 100.0,
-            child: Column(
-              children: [
-                Text(
-                  '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24.0,
+          builder: (context, snapshot) {
+            return SizedBox(
+              height: 100.0,
+              child: Column(
+                children: [
+                  Text(
+                    '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24.0,
+                    ),
                   ),
-                ),
-                Slider(
-                  divisions: divisions,
-                  min: min,
-                  max: max,
-                  value: snapshot.data ?? 1.0,
-                  onChanged: onChanged,
-                ),
-              ],
-            ),
-          ),
+                  Slider(
+                    divisions: divisions,
+                    min: min,
+                    max: max,
+                    value: snapshot.data ?? 1.0,
+                    onChanged: onChanged,
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       );
     },

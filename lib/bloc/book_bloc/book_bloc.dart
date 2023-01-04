@@ -3,13 +3,11 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/models/comment.dart';
 import 'package:rutracker_app/models/query_response.dart';
 import 'package:rutracker_app/providers/enums.dart';
-
-import '../../models/book.dart';
-import '../../models/comment.dart';
-import '../../repository/book_repository.dart';
+import 'package:rutracker_app/repository/book_repository.dart';
 
 part 'book_event.dart';
 
@@ -37,8 +35,8 @@ class BookBloc extends Bloc<BookEvent, BookState> {
       } else {
         emit(const CommentError(message: 'Ошибка загрузки комментариев'));
       }
-    } on Exception catch (exception) {
-      emit(CommentError(message: exception.message));
+    } on Exception {
+      emit(const CommentError(message: 'Ошибка загрузки комментариев'));
     }
   }
 
@@ -61,7 +59,6 @@ class BookBloc extends Bloc<BookEvent, BookState> {
       Book? book = await repository.fetchBook(int.parse(event.bookId.link));
       if (book == null) {
         book ??= await repository.fetchBookFromSource(int.parse(event.bookId.link), event.bookId.size);
-        await repository.fetchComments(int.parse(event.bookId.link), 0);
         if (book == null) {
           emit(const BookError(message: 'Ошибка загрузки книги'));
         } else {
@@ -70,8 +67,8 @@ class BookBloc extends Bloc<BookEvent, BookState> {
       } else {
         emit(BookLoaded(books: [book]));
       }
-    } on Exception catch (exception) {
-      emit(BookError(message: exception.message));
+    } on Exception {
+      emit(const BookError(message: 'Ошибка загрузки книги'));
     }
   }
 
@@ -86,12 +83,12 @@ class BookBloc extends Bloc<BookEvent, BookState> {
         event.limit,
       );
       if (favoritesBooks != null) {
-        emit(BookLoaded(books: favoritesBooks));
+        emit(BookLoaded(books: Book.filter(event.filter, favoritesBooks)));
       } else {
         emit(const BookError(message: 'Ошибка загрузки избранных книг'));
       }
-    } on Exception catch (exception) {
-      emit(BookError(message: exception.message));
+    } on Exception {
+      emit(const BookError(message: 'Ошибка загрузки избранных книг'));
     }
   }
 
@@ -118,13 +115,17 @@ class BookBloc extends Bloc<BookEvent, BookState> {
       event.books.remove(event.book);
       emit(BookLoaded(books: event.books));
     } else if (event.book.isFavorite || event.book.isDownloaded) {
-      Book? book = await repository.updateBook(event.book);
-      if (book != null) {
-        event.books.remove(event.book);
-        event.books.add(book);
-        emit(BookLoaded(books: event.books));
+      if (event.book.image.isNotEmpty && event.book.title.isNotEmpty) {
+        Book? book = await repository.updateBook(event.book);
+        if (book != null) {
+          int index = event.books.indexOf(event.book);
+          event.books.replaceRange(index, index + 1, [book]);
+          emit(BookLoaded(books: event.books));
+        } else {
+          emit(const BookError(message: 'Ошибка обновления информации'));
+        }
       } else {
-        emit(const BookError(message: 'Ошибка обновления информации'));
+        emit(const BookError(message: 'Заполните все поля и попробуйте снова'));
       }
     }
   }
@@ -152,14 +153,14 @@ class BookBloc extends Bloc<BookEvent, BookState> {
         event.book.isDownloaded = false;
         Book? bookUpdated = await repository.updateBook(event.book);
         if (bookUpdated != null) {
-          event.books.remove(event.book);
-          event.books.add(bookUpdated);
+          int index = event.books.indexOf(event.book);
+          event.books.replaceRange(index, index + 1, [bookUpdated]);
           emit(BookLoaded(books: event.books));
         } else {
           emit(const BookError(message: 'Ошибка удаления скачанных данных'));
         }
       }
-    } on  Exception {
+    } on Exception {
       emit(const BookError(message: 'Ошибка удаления скачанных данных'));
     }
   }

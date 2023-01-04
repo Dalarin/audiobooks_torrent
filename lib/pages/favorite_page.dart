@@ -1,20 +1,18 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-import 'package:rutracker_app/elements/book.dart';
-import 'package:rutracker_app/elements/create_list_dialog.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/models/book_list.dart';
 import 'package:rutracker_app/pages/list_page.dart';
 import 'package:rutracker_app/providers/enums.dart';
+import 'package:rutracker_app/providers/settings_manager.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/repository/list_repository.dart';
-
-import '../bloc/book_bloc/book_bloc.dart';
-import '../bloc/list_bloc/list_bloc.dart';
-import '../models/book.dart';
-import '../models/book_list.dart';
-import '../providers/theme_manager.dart';
+import 'package:rutracker_app/widgets/book_list.dart';
+import 'package:rutracker_app/widgets/create_list_dialog.dart';
+import 'package:rutracker_app/widgets/image.dart';
 
 class FavoritePage extends StatefulWidget {
   final AuthenticationBloc authenticationBloc;
@@ -56,6 +54,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 15,
@@ -112,7 +111,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         setter.call(() {
           settingsNotifier.sort = sort;
           final bloc = context.read<BookBloc>();
-          bloc.add(GetFavoritesBooks(sortOrder: sort, limit: 400));
+          bloc.add(GetFavoritesBooks(sortOrder: sort, limit: 400, filter: settingsNotifier.filter));
         });
       },
     );
@@ -144,6 +143,54 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
+  void _showFilterDialog(BuildContext context, SettingsNotifier notifier) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Фильтр'),
+          content: StatefulBuilder(
+            builder: (context, stateSetter) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height * 0.35,
+                width: MediaQuery.of(context).size.height,
+                child: _filterList(notifier, stateSetter, context),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  ListView _filterList(SettingsNotifier notifier, StateSetter stateSetter, BuildContext context) {
+    return ListView.separated(
+      itemBuilder: (_, index) {
+        return _filterListTile(Filter.values[index], notifier, stateSetter, context);
+      },
+      separatorBuilder: (context, index) => const Divider(),
+      itemCount: Filter.values.length,
+    );
+  }
+
+  CheckboxListTile _filterListTile(Filter filter, SettingsNotifier notifier, StateSetter stateSetter, BuildContext context) {
+    return CheckboxListTile(
+        title: Text(filter.text),
+        value: notifier.filter.contains(filter),
+        onChanged: (bool? value) {
+          stateSetter(() {
+            if (value == true) {
+              notifier.filter.add(filter);
+            } else {
+              notifier.filter.remove(filter);
+            }
+          });
+          final bloc = context.read<BookBloc>();
+          bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
+        },
+      );
+  }
+
   Widget _favoriteActionBar(BuildContext context, SettingsNotifier notifier) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
@@ -160,16 +207,16 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
             children: [
               const Text(
                 'Сортировать',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Text(notifier.sort.text),
             ],
           ),
           _action(
             context: context,
-            function: (context) {},
+            function: (context) {
+              _showFilterDialog(context, notifier);
+            },
             children: const [
               Text(
                 'Фильтровать',
@@ -197,60 +244,42 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _bookList(BuildContext context, List<Book> books) {
-    if (books.isNotEmpty) {
-      return SizedBox(
-        height: MediaQuery.of(context).size.height * 0.68,
-        child: ListView.separated(
-          itemCount: books.length,
-          separatorBuilder: (context, index) {
-            return const SizedBox(height: 10);
-          },
-          itemBuilder: (context, index) {
-            return BookElement(
-              authenticationBloc: widget.authenticationBloc,
-              books: books,
-              book: books[index],
-            );
-          },
-        ),
-      );
-    }
-    return _emptyListWidget(
-      context,
-      'Здесь будут находиться ваши избранные книги',
-    );
-  }
-
   Widget _favoriteBooksListBuilder(BuildContext context, SettingsNotifier notifier) {
     final bloc = context.read<BookBloc>();
-    return Expanded(
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: BlocConsumer<BookBloc, BookState>(
-          bloc: bloc..add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400)),
-          listener: (context, state) {
-            if (state is BookError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    state.message,
-                  ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.68,
+      child: BlocConsumer<BookBloc, BookState>(
+        bloc: bloc..add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter)),
+        listener: (context, state) {
+          if (state is BookError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.message,
                 ),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is BookLoaded) {
-              return _bookList(context, state.books);
-            } else if (state is BookLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            return _bookList(context, []);
-          },
-        ),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is BookLoaded) {
+            return ElementsList(
+              list: state.books,
+              emptyListText: 'Здесь будут находиться ваши избранные книги',
+              bloc: widget.authenticationBloc,
+              shrinkWrap: false,
+            );
+          } else if (state is BookLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return ElementsList(
+            list: const [],
+            emptyListText: 'Здесь будут находиться ваши избранные книги',
+            bloc: widget.authenticationBloc,
+          );
+        },
       ),
     );
   }
@@ -284,47 +313,6 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _cachedImage(Book book, double width, double height) {
-    return Image(
-      image: CachedNetworkImageProvider(book.image),
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      filterQuality: FilterQuality.high,
-      fit: BoxFit.cover,
-    );
-  }
-
-  Widget _networkImage(Book book, double width, double height) {
-    return Image.network(
-      book.image,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.high,
-      width: width * 0.22,
-    );
-  }
-
-  Widget _errorImage(double width, double height) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: SizedBox(
-        width: width * 0.18,
-        height: width * 0.17,
-        child: Image.asset(
-          'assets/cover.jpg',
-          repeat: ImageRepeat.repeat,
-        ),
-      ),
-    );
-  }
-
   Widget? _imageStack(BuildContext context, BookList bookList) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
@@ -338,7 +326,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
                 margin: EdgeInsets.only(left: (35 * index).toDouble()),
                 width: width * 0.2,
                 height: height * 0.4,
-                child: _networkImage(item, width, height),
+                child: CustomImage(book: item, width: width, height: height),
               ),
             );
             return MapEntry(index, value);
@@ -354,7 +342,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     return null;
   }
 
-  Widget _listElement(BuildContext context, BookList bookList) {
+  Widget _listElement(BuildContext context, BookList bookList, List<BookList> list) {
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -364,6 +352,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
               return BlocProvider.value(
                 value: context.read<ListBloc>(),
                 child: ListPage(
+                  lists: list,
                   list: bookList,
                   authenticationBloc: widget.authenticationBloc,
                 ),
@@ -374,7 +363,6 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       },
       child: Card(
         child: ListTile(
-          visualDensity: const VisualDensity(vertical: 4),
           title: Text(
             bookList.title,
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -395,7 +383,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.68,
         child: ListView.builder(
-          itemBuilder: (_, index) => _listElement(context, list[index]),
+          itemBuilder: (_, index) => _listElement(context, list[index], list),
           itemCount: list.length,
           shrinkWrap: true,
         ),

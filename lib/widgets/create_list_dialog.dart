@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
-
-import '../models/book_list.dart';
-
+import 'package:rutracker_app/models/book_list.dart';
 
 class CreateListDialog extends StatefulWidget {
   final List<BookList> lists;
@@ -25,6 +23,7 @@ class _CreateListDialogState extends State<CreateListDialog> {
     super.initState();
   }
 
+
   Widget _title(BuildContext context, List<BookList> list) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -44,6 +43,7 @@ class _CreateListDialogState extends State<CreateListDialog> {
                 list: list,
               ),
             );
+            Navigator.popUntil(context, (route) => route.isFirst);
           },
           icon: const Icon(Icons.create),
         ),
@@ -53,39 +53,31 @@ class _CreateListDialogState extends State<CreateListDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 15,
           vertical: 10,
+          horizontal: 10,
         ),
-        height: MediaQuery.of(context).size.height * 0.3,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _title(context, widget.lists),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.005,
+            const SizedBox(height: 15),
+            _textField(
+              context: context,
+              controller: _titleController,
+              hint: 'Название списка',
             ),
-            Column(
-              children: [
-                _textField(
-                  context: context,
-                  controller: _titleController,
-                  hint: 'Название списка',
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.015,
-                ),
-                _textField(
-                  context: context,
-                  controller: _descriptionController,
-                  hint: 'Описание списка',
-                ),
-              ],
+            const SizedBox(height: 15),
+            _textField(
+              context: context,
+              controller: _descriptionController,
+              hint: 'Описание списка',
             ),
           ],
         ),
@@ -104,7 +96,7 @@ class _CreateListDialogState extends State<CreateListDialog> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        hintText: hint,
+        label: Text(hint),
       ),
     );
   }

@@ -11,9 +11,8 @@ import 'package:equatable/equatable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-
-import '../../models/book.dart';
-import '../book_bloc/book_bloc.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/models/book.dart';
 
 part 'audio_event.dart';
 
@@ -48,24 +47,19 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
   @override
   Future<void> close() {
     if (audioPlayer != null) {
-      bookBloc.add(
-        UpdateBook(
-          book: book.copyWith(
-            listeningInfo: book.listeningInfo.copyWith(
-              bookID: book.id,
-              index: audioPlayer!.currentIndex,
-              position: audioPlayer!.position.inSeconds,
-              speed: audioPlayer!.speed,
-            ),
-          ),
-          books: books,
-        ),
+      book.listeningInfo = book.listeningInfo.copyWith(
+        bookID: book.id,
+        index: audioPlayer!.currentIndex,
+        position: audioPlayer!.position.inSeconds,
+        speed: audioPlayer!.speed,
       );
+      bookBloc.add(UpdateBook(book: book, books: books));
       audioPlayer?.stop();
     }
     return super.close();
   }
-  /// init audioplayer
+
+  /// init audio player
   void _initializeAudio(InitializeAudio event, emit) async {
     try {
       emit(AudioLoading());
@@ -93,6 +87,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       emit(AudioError(message: exception.message));
     }
   }
+
   /// add mp3 files to playlist with tags
   Future<List<AudioSource>?> _initializePlaylist(Book book) async {
     List<AudioSource> playlist = [];
@@ -120,6 +115,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       throw Exception('Ошибка инициализации плейлиста');
     }
   }
+
   /// get list of mp3 files for book (bookId)
   Future<List<FileSystemEntity>> _getAudioFiles(int bookId) async {
     try {

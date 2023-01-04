@@ -1,5 +1,6 @@
-
 import 'package:rutracker_app/models/listening_info.dart';
+
+import '../providers/enums.dart';
 
 class Book {
   int id;
@@ -52,14 +53,13 @@ class Book {
       'author': author,
       'executor': executor,
       'genre': genre,
-      'audio': audio,
+      'time': audio,
       'description': description,
-      'releaseYear': releaseYear,
+      'release_year': releaseYear,
       'series': series,
-      'bookNumber': bookNumber,
+      'book_number': bookNumber,
       'bitrate': bitrate,
       'size': size,
-      'listeningInfo': listeningInfo.toJson(),
       'isFavorite': isFavorite ? 1 : 0,
       'isDownloaded': isDownloaded ? 1 : 0,
     };
@@ -143,5 +143,16 @@ class Book {
       isDownloaded: isDownloaded ?? this.isDownloaded,
       listeningInfo: listeningInfo ?? this.listeningInfo,
     );
+  }
+
+  static List<Book> filter(List<Filter> filter, List<Book> book) {
+    if (!filter.contains(Filter.completed)) {
+      book.removeWhere((element) => !element.listeningInfo.isCompleted);
+    } else if (!filter.contains(Filter.downloaded)) {
+      book.removeWhere((element) => !element.isDownloaded);
+    } else if (!filter.contains(Filter.listening)) {
+      book.removeWhere((element) => element.listeningInfo.index != 0);
+    }
+    return book;
   }
 }

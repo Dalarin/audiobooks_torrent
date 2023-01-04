@@ -1,11 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
-
-import '../../models/book.dart';
-import '../../models/book_list.dart';
-import '../../models/list_object.dart';
-import '../../repository/list_repository.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/models/book_list.dart';
+import 'package:rutracker_app/models/list_object.dart';
+import 'package:rutracker_app/repository/list_repository.dart';
 
 part 'list_event.dart';
 

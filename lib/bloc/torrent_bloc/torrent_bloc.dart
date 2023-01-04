@@ -5,11 +5,10 @@ import 'package:dartorrent_common/dartorrent_common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rutracker_api/rutracker_api.dart';
+import 'package:rutracker_app/models/book.dart';
 import 'package:torrent_model/torrent_model.dart';
 import 'package:torrent_task/torrent_task.dart';
 import 'package:equatable/equatable.dart';
-
-import '../../models/book.dart';
 
 part 'torrent_event.dart';
 

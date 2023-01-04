@@ -1,15 +1,14 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
+import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/models/book_list.dart';
 import 'package:rutracker_app/pages/book_page.dart';
 import 'package:rutracker_app/repository/list_repository.dart';
-
-import '../bloc/book_bloc/book_bloc.dart';
-import '../bloc/list_bloc/list_bloc.dart';
-import '../models/book.dart';
-import '../models/book_list.dart';
+import 'package:rutracker_app/widgets/image.dart';
 
 class BookElement extends StatelessWidget {
   final Book book;
@@ -47,10 +46,10 @@ class BookElement extends StatelessWidget {
         child: _customListTile(
           context: context,
           book: book,
-          leading: _leadingImage(
+          leading: CustomImage(
             book: book,
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width * 0.2,
+            height: MediaQuery.of(context).size.height * 0.17,
           ),
           title: Text(
             book.title,
@@ -336,7 +335,6 @@ class BookElement extends StatelessWidget {
     required double height,
   }) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         InkWell(
@@ -347,6 +345,7 @@ class BookElement extends StatelessWidget {
           ),
           child: const Icon(Icons.more_vert_rounded),
         ),
+        SizedBox(height: height * 0.03),
         _progressIndication(context, book),
       ],
     );
@@ -362,61 +361,5 @@ class BookElement extends StatelessWidget {
       );
     }
     return const SizedBox();
-  }
-
-  Widget _leadingImage({
-    required Book book,
-    required double width,
-    required double height,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: SizedBox(
-        width: width * 0.2,
-        height: height * 0.17,
-        child: book.isDownloaded ? _cachedImage(book, width, height) : _networkImage(book, width, height),
-      ),
-    );
-  }
-
-  Widget _cachedImage(Book book, double width, double height) {
-    return Image(
-      image: CachedNetworkImageProvider(book.image),
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      filterQuality: FilterQuality.high,
-      fit: BoxFit.cover,
-    );
-  }
-
-  Widget _networkImage(Book book, double width, double height) {
-    return Image.network(
-      book.image,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator());
-      },
-      errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.high,
-      width: width * 0.22,
-    );
-  }
-
-  Widget _errorImage(double width, double height) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: SizedBox(
-        width: width * 0.18,
-        height: width * 0.17,
-        child: Image.asset(
-          'assets/cover.jpg',
-          repeat: ImageRepeat.repeat,
-        ),
-      ),
-    );
   }
 }

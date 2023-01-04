@@ -3,15 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_api/rutracker_api.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/bloc/search_bloc/search_bloc.dart';
+import 'package:rutracker_app/models/query_response.dart';
 import 'package:rutracker_app/pages/book_page.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
-
-import '../bloc/search_bloc/search_bloc.dart';
-import '../models/query_response.dart';
 
 class SearchPage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
   final List<Categories> selectedGenre = [Categories.all];
+  bool isPageActive = true;
 
   SearchPage({
     Key? key,
@@ -43,7 +43,8 @@ class SearchPage extends StatelessWidget {
             ),
             body: BlocListener<BookBloc, BookState>(
               listener: (context, state) {
-                if (state is BookLoaded) {
+                if (state is BookLoaded && isPageActive) {
+                  isPageActive = false;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -59,9 +60,10 @@ class SearchPage extends StatelessWidget {
                       },
                     ),
                   ).then((value) {
+                    isPageActive = true;
                     Navigator.pop(context);
                   });
-                } else if (state is BookLoading) {
+                } else if (state is BookLoading && isPageActive) {
                   _showLoadingMenu(context);
                 } else if (state is BookError) {
                   _showErrorSnackBar(context, state.message);
@@ -90,10 +92,13 @@ class SearchPage extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (_) {
-        return const AlertDialog(
-          backgroundColor: Colors.transparent,
-          content: Center(
-            child: CircularProgressIndicator(),
+        return AlertDialog(
+          content: SizedBox(
+            height: MediaQuery.of(context).size.width * 0.3,
+            width: MediaQuery.of(context).size.width * 0.3,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
         );
       },

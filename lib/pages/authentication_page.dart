@@ -1,21 +1,35 @@
-// ignore_for_file: prefer_final_fields, unused_import, must_be_immutable, prefer_const_constructors
-
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/main.dart';
-import 'package:rutracker_app/pages/search_page.dart';
-import 'package:rutracker_app/providers/theme_manager.dart';
+import 'package:rutracker_app/providers/settings_manager.dart';
 
 class AuthenticationPage extends StatelessWidget {
-  const AuthenticationPage({Key? key}) : super(key: key);
+  final SettingsNotifier notifier;
+
+  const AuthenticationPage({
+    Key? key,
+    required this.notifier,
+  }) : super(key: key);
+
+  void _navBarPush(BuildContext context, AuthenticationBloc bloc) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) {
+          return BottomNavBar(
+            authenticationBloc: bloc,
+            notifier: notifier,
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthenticationBloc>(
-      create: (context) => AuthenticationBloc()..add(ApplicationStarted()),
+      create: (context) => AuthenticationBloc(notifier)..add(ApplicationStarted()),
       child: Builder(
         builder: (context) {
           final bloc = context.read<AuthenticationBloc>();
@@ -24,55 +38,35 @@ class AuthenticationPage extends StatelessWidget {
               elevation: 0.0,
               backgroundColor: Colors.transparent,
               centerTitle: true,
-              title: Text('Авторизация'),
+              title: const Text('Авторизация'),
               actions: [
-                InkWell(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) {
-                          return BottomNavBar(
-                            authenticationBloc: bloc,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.exit_to_app),
-                )
+                IconButton(
+                  tooltip: 'Кнопка перехода в приложение без авторизации. '
+                           'Рекомендуется нажимать после появления формы ввода',
+                  onPressed: () => _navBarPush(context, bloc),
+                  icon: const Icon(Icons.exit_to_app),
+                ),
               ],
             ),
             body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
               listener: (context, state) {
                 if (state is AuthenticationError) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                    ),
+                    SnackBar(content: Text(state.message)),
                   );
                 } else if (state is AuthenticationSuccess) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) {
-                        return BottomNavBar(
-                          authenticationBloc: bloc,
-                        );
-                      },
-                    ),
-                  );
+                  _navBarPush(context, bloc);
                 }
               },
               builder: (context, state) {
                 if (state is AuthenticationInitial) {
-                  return AuthenticationPageContent();
+                  return const AuthenticationPageContent();
                 } else if (state is AuthenticationLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-                return AuthenticationPageContent();
+                return const AuthenticationPageContent();
               },
             ),
           );
@@ -95,10 +89,15 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          child: _authorizationPageBody(context),
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: _authorizationPageBody(context),
+          ),
         ),
       ),
     );
@@ -113,11 +112,11 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            Text("Логин", style: TextStyle(fontSize: 17)),
+            const Text("Логин", style: TextStyle(fontSize: 17)),
             const SizedBox(height: 10),
             _textInput(false, titleController),
             const SizedBox(height: 15),
-            Text("Пароль", style: TextStyle(fontSize: 17)),
+            const Text("Пароль", style: TextStyle(fontSize: 17)),
             const SizedBox(height: 10),
             _textInput(true, passwordController),
             const SizedBox(height: 30),
@@ -153,7 +152,7 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
           ),
         );
       },
-      child: Text('Войти'),
+      child: const Text('Войти'),
     );
   }
 }

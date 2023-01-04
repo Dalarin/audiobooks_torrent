@@ -1,4 +1,4 @@
-import 'book.dart';
+import 'package:rutracker_app/models/book.dart';
 
 class BookList {
   int id;
@@ -14,10 +14,7 @@ class BookList {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'description': description
-    };
+    return {'title': title, 'description': description};
   }
 
   factory BookList.fromMap(Map<String, dynamic> map) {

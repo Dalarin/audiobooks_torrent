@@ -8,10 +8,15 @@ abstract class BookEvent extends Equatable {
 }
 
 class GetFavoritesBooks extends BookEvent {
+  final List<Filter> filter;
   final Sort sortOrder;
   final int limit;
 
-  const GetFavoritesBooks({required this.sortOrder, required this.limit});
+  const GetFavoritesBooks({
+    required this.sortOrder,
+    required this.limit,
+    required this.filter,
+  });
 }
 
 class GetDownloadedBooks extends BookEvent {}
