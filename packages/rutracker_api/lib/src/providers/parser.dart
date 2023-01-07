@@ -64,10 +64,11 @@ class Parser {
 
   List<Map<String, dynamic>> parseCommentsResponse(Document document, int start) {
     List<Map<String, dynamic>> response = [];
+    int skipLength = start > 0 ? 1 : 2;
     try {
       Element? element = document.getElementById('topic_main');
       if (element != null) {
-        for (Element comment in element.children.sublist(2)) {
+        for (Element comment in element.children.sublist(skipLength)) {
           response.add({
             'nickname': comment.getElementsByClassName('nick').first.text.trim(),
             'avatar': _findImageInComment(comment),
@@ -77,7 +78,6 @@ class Parser {
         }
       }
     } catch (exception) {
-      print(exception);
       throw Exception('Ошибка получения комментариев');
     }
     return response;
