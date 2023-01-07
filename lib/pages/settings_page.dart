@@ -80,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _selectColorDialog(BuildContext context, SettingsNotifier notifier) {
+  void _showSelectColorDialog(BuildContext context, SettingsNotifier notifier) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -193,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _colorSettings(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
-      onTap: () => _selectColorDialog(context, settingsNotifier),
+      onTap: () => _showSelectColorDialog(context, settingsNotifier),
       title: Text(
         'Настройка основного цвета',
         style: Theme.of(context).textTheme.titleMedium,

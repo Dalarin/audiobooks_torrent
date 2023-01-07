@@ -90,7 +90,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
       body: _children[_currentIndex],
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: onTap,

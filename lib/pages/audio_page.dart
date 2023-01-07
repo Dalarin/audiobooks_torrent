@@ -286,10 +286,6 @@ class ControlButtons extends StatelessWidget {
               function: () {
                 _selectAudioSpeedDialog(
                   context: context,
-                  title: "Регулировка скорости",
-                  divisions: 10,
-                  min: 0.8,
-                  max: 2.0,
                   stream: player.speedStream,
                   onChanged: player.setSpeed,
                 );
@@ -299,7 +295,6 @@ class ControlButtons extends StatelessWidget {
                 "${snapshot.data?.toStringAsFixed(1)}x",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey,
                 ),
               ),
             );
@@ -410,10 +405,6 @@ class ControlButtons extends StatelessWidget {
 
   void _selectAudioSpeedDialog({
     required BuildContext context,
-    required String title,
-    required int divisions,
-    required double min,
-    required double max,
     String valueSuffix = '',
     required Stream<double> stream,
     required ValueChanged<double> onChanged,
@@ -422,12 +413,7 @@ class ControlButtons extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(32.0),
-            ),
-          ),
-          title: Text(title, textAlign: TextAlign.center),
+          title: const Text('Регулировка скорости'),
           content: StreamBuilder<double>(
             stream: stream,
             builder: (context, snapshot) {
@@ -443,9 +429,9 @@ class ControlButtons extends StatelessWidget {
                       ),
                     ),
                     Slider(
-                      divisions: divisions,
-                      min: min,
-                      max: max,
+                      divisions: 10,
+                      min: 0.8,
+                      max: 2.0,
                       value: snapshot.data ?? 1.0,
                       onChanged: onChanged,
                     ),
@@ -458,7 +444,6 @@ class ControlButtons extends StatelessWidget {
       },
     );
   }
-
 }
 
 class SeekBar extends StatefulWidget {
@@ -533,4 +518,3 @@ class PositionData {
 
   PositionData(this.position, this.bufferedPosition, this.duration);
 }
-

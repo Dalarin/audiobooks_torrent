@@ -1,6 +1,6 @@
-import 'package:rutracker_app/models/listening_info.dart';
+import 'dart:core';
 
-import '../providers/enums.dart';
+import 'package:rutracker_app/models/listening_info.dart';
 
 class Book {
   int id;
@@ -144,15 +144,5 @@ class Book {
       listeningInfo: listeningInfo ?? this.listeningInfo,
     );
   }
-
-  static List<Book> filter(List<Filter> filter, List<Book> book) {
-    if (!filter.contains(Filter.completed)) {
-      book.removeWhere((element) => element.listeningInfo.isCompleted);
-    } else if (!filter.contains(Filter.downloaded)) {
-      book.removeWhere((element) => element.isDownloaded);
-    } else if (!filter.contains(Filter.listening)) {
-      book.removeWhere((element) => element.listeningInfo.index != 0);
-    }
-    return book;
-  }
 }
+

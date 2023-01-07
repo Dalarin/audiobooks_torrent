@@ -1,3 +1,4 @@
+import 'package:rutracker_app/models/book.dart';
 
 enum Sort {
   standart,
@@ -39,9 +40,9 @@ extension SortExtention on Sort {
 }
 
 enum Filter {
-  downloaded,
+  notDownloaded,
   completed,
-  listening;
+  notListening;
 
   factory Filter.fromValue(String value) {
     return values.firstWhere((element) => element.text == value);
@@ -51,12 +52,30 @@ enum Filter {
 extension FilterExtension on Filter {
   String get text {
     switch (this) {
-      case Filter.downloaded:
-        return 'Скачанное';
+      case Filter.notDownloaded:
+        return 'Не скачанное';
       case Filter.completed:
         return 'Прослушанное';
-      case Filter.listening:
-        return 'В процессе прослушивания';
+      case Filter.notListening:
+        return 'Не в процессе прослушивания';
     }
+  }
+}
+
+extension ListFilterExtension on List<Filter> {
+  List<Book> filter(List<Book> book) {
+    if (!contains(Filter.completed)) {
+      book.removeWhere((element) => element.listeningInfo.isCompleted);
+    }
+    if (!contains(Filter.notDownloaded)) {
+      book.removeWhere((element) => !element.isDownloaded);
+    }
+    if (!contains(Filter.notListening)) {
+      book.removeWhere((element) {
+        return element.listeningInfo.position == 0 &&
+            element.listeningInfo.index == 0;
+      });
+    }
+    return book;
   }
 }

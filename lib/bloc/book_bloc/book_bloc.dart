@@ -30,9 +30,6 @@ class BookBloc extends Bloc<BookEvent, BookState> {
     try {
       emit(CommentsLoading());
       int commentRequired = event.start - 30 <= 0 ? 29 : 30;
-      print(commentRequired);
-      print(event.start);
-      print(event.comments.length);
       if (event.comments.isNotEmpty && event.comments.length < commentRequired) {
         emit(BookCommentsLoaded(comments: event.comments, start: event.start));
       } else {
@@ -93,7 +90,7 @@ class BookBloc extends Bloc<BookEvent, BookState> {
         event.limit,
       );
       if (favoritesBooks != null) {
-        emit(BookLoaded(books: Book.filter(event.filter, favoritesBooks)));
+        emit(BookLoaded(books: event.filter.filter(favoritesBooks)));
       } else {
         emit(const BookError(message: 'Ошибка загрузки избранных книг'));
       }

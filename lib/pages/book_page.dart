@@ -317,12 +317,14 @@ class _BookPageState extends State<BookPage> {
       elevation: 0.0,
       actions: [
         IconButton(
+          isSelected: book.isFavorite,
           onPressed: () {
             book.isFavorite = !book.isFavorite;
             final bloc = context.read<BookBloc>();
             bloc.add(UpdateBook(book: book, books: books));
           },
-          icon: Icon(book.isFavorite ? Icons.favorite : Icons.favorite_border_outlined),
+          icon: const Icon(Icons.favorite_border_rounded),
+          selectedIcon: const Icon(Icons.favorite_rounded),
         ),
         IconButton(
           onPressed: () => _showMoreInfoDialog(context, book),

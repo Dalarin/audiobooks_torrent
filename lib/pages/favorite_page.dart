@@ -53,14 +53,11 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-            ),
-            child: _favoritePageContent(context),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 15,
           ),
+          child: _favoritePageContent(context),
         ),
       ),
     );
@@ -69,17 +66,15 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
   Widget _favoritePageContent(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 0.85,
-          child: TabBarView(
-            controller: tabController,
-            children: [
-              _favoriteTab(context, widget.authenticationBloc),
-              _listTab(),
-            ],
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                _favoriteTab(context, widget.authenticationBloc),
+                _listTab(),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -242,8 +237,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
 
   Widget _favoriteBooksListBuilder(BuildContext context, SettingsNotifier notifier) {
     final bloc = context.read<BookBloc>();
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.68,
+    return Expanded(
       child: BlocConsumer<BookBloc, BookState>(
         bloc: bloc..add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter)),
         listener: (context, state) {
@@ -263,7 +257,6 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
               list: state.books,
               emptyListText: 'Здесь будут находиться ваши избранные книги',
               bloc: widget.authenticationBloc,
-              shrinkWrap: false,
             );
           } else if (state is BookLoading) {
             return const Center(

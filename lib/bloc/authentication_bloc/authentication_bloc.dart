@@ -69,10 +69,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           emit(const AuthenticationError(message: 'Неверный логин и/или пароль'));
         }
       }
-    } on Exception catch (exception) {
+    } on Exception {
+      emit(const AuthenticationError(message: 'Ошибка аутенфикации'));
+    } on AuthenticationError catch (exception) {
       emit(AuthenticationError(message: exception.message));
-    } on AuthenticationError {
-      emit(const AuthenticationError(message: 'Неверный логин и/или пароль'));
     }
   }
 }

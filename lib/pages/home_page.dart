@@ -21,9 +21,7 @@ class HomePage extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: SingleChildScrollView(
-            child: _homePageContent(context),
-          ),
+          child: _homePageContent(context),
         ),
       ),
     );
@@ -42,7 +40,6 @@ class HomePage extends StatelessWidget {
   Widget _homePageContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 15),
         _title('Недавно прослушанное'),
@@ -120,7 +117,14 @@ class HomePage extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return BlocConsumer<BookBloc, BookState>(
-            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 3, filter: Filter.values)),
+            bloc: context.read<BookBloc>()
+              ..add(
+                const GetFavoritesBooks(
+                  sortOrder: Sort.standart,
+                  limit: 3,
+                  filter: Filter.values,
+                ),
+              ),
             listener: (context, state) {
               if (state is BookError) {
                 ScaffoldMessenger.of(context).showSnackBar(
