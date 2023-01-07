@@ -34,7 +34,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         cookieDirectory: appDocDir.path,
       );
       rutrackerApi = objects[0] as RutrackerApi;
-      print(objects[1]);
       if (objects[1] as bool) {
         emit(AuthenticationSuccess());
       } else {
@@ -70,10 +69,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           emit(const AuthenticationError(message: 'Неверный логин и/или пароль'));
         }
       }
-    } on Exception catch (exception) {
+    } on Exception {
+      emit(const AuthenticationError(message: 'Ошибка аутенфикации'));
+    } on AuthenticationError catch (exception) {
       emit(AuthenticationError(message: exception.message));
-    } on AuthenticationError {
-      emit(const AuthenticationError(message: 'Неверный логин и/или пароль'));
     }
   }
 }

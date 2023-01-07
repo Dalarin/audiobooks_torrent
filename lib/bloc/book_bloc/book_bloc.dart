@@ -29,11 +29,18 @@ class BookBloc extends Bloc<BookEvent, BookState> {
   void _getComments(GetComments event, emit) async {
     try {
       emit(CommentsLoading());
-      List<Comment>? comments = await repository.fetchComments(event.bookId, event.start);
-      if (comments != null) {
-        emit(BookCommentsLoaded(comments: comments));
+      int commentRequired = event.start - 30 <= 0 ? 29 : 30;
+      if (event.comments.isNotEmpty && event.comments.length < commentRequired) {
+        emit(BookCommentsLoaded(comments: event.comments, start: event.start));
       } else {
-        emit(const CommentError(message: 'Ошибка загрузки комментариев'));
+        List<Comment>? comments = await repository.fetchComments(event.bookId, event.start);
+        if (comments != null) {
+          event.comments.addAll(comments);
+          emit(BookCommentsLoaded(comments: event.comments, start: event.start));
+        } else {
+          emit(const CommentError(message: 'Ошибка загрузки комментариев'));
+          emit(BookCommentsLoaded(comments: event.comments, start: event.start));
+        }
       }
     } on Exception {
       emit(const CommentError(message: 'Ошибка загрузки комментариев'));
@@ -83,7 +90,7 @@ class BookBloc extends Bloc<BookEvent, BookState> {
         event.limit,
       );
       if (favoritesBooks != null) {
-        emit(BookLoaded(books: Book.filter(event.filter, favoritesBooks)));
+        emit(BookLoaded(books: event.filter.filter(favoritesBooks)));
       } else {
         emit(const BookError(message: 'Ошибка загрузки избранных книг'));
       }

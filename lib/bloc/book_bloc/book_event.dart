@@ -43,8 +43,13 @@ class UpdateBook extends BookEvent {
 class GetComments extends BookEvent {
   final int bookId;
   final int start;
+  final List<Comment> comments;
 
-  const GetComments({required this.bookId, required this.start});
+  const GetComments({
+    required this.bookId,
+    required this.start,
+    required this.comments,
+  });
 }
 
 class DeleteBook extends BookEvent {

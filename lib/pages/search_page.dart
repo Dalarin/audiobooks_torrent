@@ -67,8 +67,6 @@ class SearchPage extends StatelessWidget {
                   _showLoadingMenu(context);
                 } else if (state is BookError) {
                   _showErrorSnackBar(context, state.message);
-                } else if (state is BookUpdated) {
-                  Navigator.pop(context);
                 }
               },
               child: _searchPageSafeArea(context),
@@ -143,23 +141,25 @@ class SearchPage extends StatelessWidget {
   }
 
   Widget _tagsPanel(BuildContext context) {
-    return StatefulBuilder(builder: (context, setState) {
-      return Wrap(
-        direction: Axis.horizontal,
-        spacing: 10,
-        children: [
-          _tag(context, Categories.foreignFantasy, setState),
-          _tag(context, Categories.history, setState),
-          _tag(context, Categories.russianFantasy, setState),
-          _tag(context, Categories.radioPerformances, setState),
-          _tag(context, Categories.biography, setState),
-          _tag(context, Categories.foreignLiterature, setState),
-          _tag(context, Categories.foreignDetectives, setState),
-          _tag(context, Categories.russianDetectives, setState),
-          _tag(context, Categories.scienceLiterature, setState),
-        ],
-      );
-    });
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Wrap(
+          direction: Axis.horizontal,
+          spacing: 10,
+          children: [
+            _tag(context, Categories.foreignFantasy, setState),
+            _tag(context, Categories.history, setState),
+            _tag(context, Categories.russianFantasy, setState),
+            _tag(context, Categories.radioPerformances, setState),
+            _tag(context, Categories.biography, setState),
+            _tag(context, Categories.foreignLiterature, setState),
+            _tag(context, Categories.foreignDetectives, setState),
+            _tag(context, Categories.russianDetectives, setState),
+            _tag(context, Categories.scienceLiterature, setState),
+          ],
+        );
+      },
+    );
   }
 
   PreferredSizeWidget _searchField(BuildContext context) {

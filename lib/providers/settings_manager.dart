@@ -5,7 +5,7 @@ import 'package:rutracker_app/models/proxy.dart';
 import 'package:rutracker_app/providers/enums.dart';
 import 'package:rutracker_app/providers/storage_manager.dart';
 
-class SettingsNotifier with ChangeNotifier {
+class   SettingsNotifier with ChangeNotifier {
   late Proxy _proxy;
   late Color _color;
   late Brightness _brightness;
@@ -22,24 +22,23 @@ class SettingsNotifier with ChangeNotifier {
     [...Filter.values],
   );
 
-  SettingsNotifier() {
-    StorageManager.readSettings().then((settings) {
-      if (settings != null) {
-        _proxy = Proxy.fromMap(settings['proxy']);
-        _color = Color(settings['color']);
-        _brightness = settings['brightness'] == 1 ? Brightness.dark : Brightness.light;
-        _sort = Sort.fromValue(settings['sort']);
-        _filter = List.from(jsonDecode(settings['filter'])).map((e) => Filter.fromValue(e)).toList();
-      } else {
-        _brightness = standart._brightness;
-        _proxy = standart._proxy;
-        _color = standart._color;
-        _sort = standart._sort;
-        _filter = standart._filter;
-      }
-      _loadSettings();
-      notifyListeners();
-    });
+  SettingsNotifier(Map<String, dynamic>? settings) {
+    2.isEven;
+    if (settings != null) {
+      _proxy = Proxy.fromMap(settings['proxy']);
+      _color = Color(settings['color']);
+      _brightness = settings['brightness'] == 1 ? Brightness.dark : Brightness.light;
+      _sort = Sort.fromValue(settings['sort']);
+      _filter = List.from(jsonDecode(settings['filter'])).map((e) => Filter.fromValue(e)).toList();
+    } else {
+      _brightness = standart._brightness;
+      _proxy = standart._proxy;
+      _color = standart._color;
+      _sort = standart._sort;
+      _filter = standart._filter;
+    }
+    _loadSettings();
+    notifyListeners();
   }
 
   SettingsNotifier.from(this._proxy, String color, String sort, bool isDarkTheme, List<Filter> filter) {
@@ -122,7 +121,6 @@ class SettingsNotifier with ChangeNotifier {
     _sort = value;
     save();
   }
-
 
   List<Filter> get filter => _filter;
 

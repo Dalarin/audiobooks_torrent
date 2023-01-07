@@ -2,37 +2,37 @@ name: rutracker_app
 description: Приложение для прослушивания аудиокниг.
 
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 0.3.5
+version: 1.0.0
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
 dependencies:
   flutter:
     sdk: flutter
-  audio_service: ^0.18.6
+  audio_service: ^0.18.9
   audiotagger: ^2.2.1
   cached_network_image: ^3.2.0
   dartorrent_common: ^1.0.3
   equatable: ^2.0.5
   flutter_bloc: ^8.1.1
-  just_audio: ^0.9.27
-  just_audio_background: ^0.0.1-beta.7
+  just_audio: ^0.9.31
+  just_audio_background: ^0.0.1-beta.9
   path_provider: ^2.0.11
   percent_indicator: ^4.2.2
   provider: ^6.0.3
+  rutracker_api:
+    path: packages/rutracker_api
   shared_preferences: ^2.0.11
   sqflite: ^2.0.1
   torrent_task: ^0.3.0
-  rutracker_api:
-    path: packages/rutracker_api
 
   flutter_localizations:
     sdk: flutter
 
 
 dependency_overrides:
-  http: ^0.13.4
-  crypto: ^3.0.0
+  http: ^0.13.5
+  crypto: ^3.0.2
 
 
 

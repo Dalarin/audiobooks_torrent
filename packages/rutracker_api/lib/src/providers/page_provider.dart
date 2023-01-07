@@ -74,13 +74,12 @@ class PageProvider {
   }
 
   Future<Response> getCommentsResponse(String link, int start) async {
-    Map<String, dynamic> parameters = start == 0 ? {'t': link} : {'t': link, 'start': start};
     if (!_authenticated) {
       throw AuthenticationError('Пользователь не авторизован');
     } else {
       Response response = await _dio.get(
         _topicUrl,
-        queryParameters: parameters,
+        queryParameters: {'t': link, 'start': start},
       );
       if (response.statusCode == 200) {
         return response;

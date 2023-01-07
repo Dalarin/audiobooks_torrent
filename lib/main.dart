@@ -9,16 +9,18 @@ import 'package:rutracker_app/pages/search_page.dart';
 import 'package:rutracker_app/pages/settings_page.dart';
 import 'package:rutracker_app/providers/settings_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:rutracker_app/providers/storage_manager.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   JustAudioBackground.init(
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
   );
-  WidgetsFlutterBinding.ensureInitialized();
+  final settings = await StorageManager.readSettings();
   return runApp(
     ChangeNotifierProvider<SettingsNotifier>(
-      create: (_) => SettingsNotifier(),
+      create: (_)  => SettingsNotifier(settings),
       child: const Application(),
     ),
   );
@@ -33,7 +35,11 @@ class Application extends StatelessWidget {
       builder: (context, settings, _) {
         return MaterialApp(
           theme: settings.theme,
-          localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           supportedLocales: const [Locale('ru', 'RU'), Locale('en')],
           title: 'Аудиокниги - Торрент',
           home: AuthenticationPage(notifier: settings),
@@ -84,7 +90,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
       body: _children[_currentIndex],
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: onTap,

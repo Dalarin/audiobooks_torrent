@@ -53,14 +53,11 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-            ),
-            child: _favoritePageContent(context),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 15,
           ),
+          child: _favoritePageContent(context),
         ),
       ),
     );
@@ -69,17 +66,15 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
   Widget _favoritePageContent(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 0.85,
-          child: TabBarView(
-            controller: tabController,
-            children: [
-              _favoriteTab(context, widget.authenticationBloc),
-              _listTab(),
-            ],
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                _favoriteTab(context, widget.authenticationBloc),
+                _listTab(),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -150,7 +145,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         return AlertDialog(
           title: const Text('Фильтр'),
           content: StatefulBuilder(
-            builder: (context, stateSetter) {
+            builder: (_, stateSetter) {
               return SizedBox(
                 height: MediaQuery.of(context).size.height * 0.35,
                 width: MediaQuery.of(context).size.height,
@@ -175,20 +170,16 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
 
   CheckboxListTile _filterListTile(Filter filter, SettingsNotifier notifier, StateSetter stateSetter, BuildContext context) {
     return CheckboxListTile(
-        title: Text(filter.text),
-        value: notifier.filter.contains(filter),
-        onChanged: (bool? value) {
-          stateSetter(() {
-            if (value == true) {
-              notifier.filter.add(filter);
-            } else {
-              notifier.filter.remove(filter);
-            }
-          });
-          final bloc = context.read<BookBloc>();
-          bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
-        },
-      );
+      title: Text(filter.text),
+      value: notifier.filter.contains(filter),
+      onChanged: (bool? value) {
+        final filterList = notifier.filter;
+        stateSetter(() => value == true ? filterList.add(filter) : filterList.remove(filter));
+        notifier.filter = filterList;
+        final bloc = context.read<BookBloc>();
+        bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
+      },
+    );
   }
 
   Widget _favoriteActionBar(BuildContext context, SettingsNotifier notifier) {
@@ -246,8 +237,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
 
   Widget _favoriteBooksListBuilder(BuildContext context, SettingsNotifier notifier) {
     final bloc = context.read<BookBloc>();
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.68,
+    return Expanded(
       child: BlocConsumer<BookBloc, BookState>(
         bloc: bloc..add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter)),
         listener: (context, state) {
@@ -267,7 +257,6 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
               list: state.books,
               emptyListText: 'Здесь будут находиться ваши избранные книги',
               bloc: widget.authenticationBloc,
-              shrinkWrap: false,
             );
           } else if (state is BookLoading) {
             return const Center(

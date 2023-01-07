@@ -1,13 +1,12 @@
 import 'dart:developer';
 
 import 'package:path/path.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/models/book_list.dart';
+import 'package:rutracker_app/models/list_object.dart';
+import 'package:rutracker_app/models/listening_info.dart';
 import 'package:rutracker_app/providers/enums.dart';
 import 'package:sqflite/sqflite.dart';
-
-import '../models/book.dart';
-import '../models/book_list.dart';
-import '../models/list_object.dart';
-import '../models/listening_info.dart';
 
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
@@ -70,10 +69,7 @@ class DBHelper {
       await db.execute('''
     CREATE TABLE IF NOT EXISTS list_object(
       id_book $integerType,
-      id_list $integerType,
-      FOREIGN KEY(id_book) REFERENCES Book(id) ON DELETE CASCADE,
-      FOREIGN KEY(id_list) REFERENCES List(id) ON DELETE CASCADE
-    )     
+      id_list $integerType)     
     ''');
     } catch (_) {
       log('Cant create table List_Object');
@@ -133,6 +129,7 @@ class DBHelper {
 
   Future<bool> deleteBook(int bookId) async {
     final db = await instance.database;
+    await db.delete('list_object', where: 'id_book = ?', whereArgs: [bookId]);
     int count = await db.delete('book', where: 'id = ?', whereArgs: [bookId]);
     return count > 0;
   }
@@ -210,6 +207,7 @@ class DBHelper {
 
   Future<bool> deleteList(int listId) async {
     final db = await instance.database;
+    await db.delete('list_object', where: 'id_list = ?', whereArgs: [listId]);
     return await db.delete('list', where: 'id = ?', whereArgs: [listId]) > 0;
   }
 
@@ -226,42 +224,24 @@ class DBHelper {
 
   Future<ListeningInfo?> updateListeningInfo(ListeningInfo listeningInfo) async {
     final db = await instance.database;
-    var count =
-        await db.rawQuery("INSERT OR REPLACE INTO 'listening_info'(bookID, maxIndex, 'index', speed, position, isCompleted) VALUES(?,?,?,?,?,?)", [
-      listeningInfo.bookID,
-      listeningInfo.maxIndex,
-      listeningInfo.index,
-      listeningInfo.speed,
-      listeningInfo.position,
-      listeningInfo.isCompleted ? 1 : 0,
-    ]);
-    return count.isNotEmpty ? listeningInfo : null;
+    int count = await db.update(
+      'listening_info',
+      listeningInfo.toJson(),
+      where: 'bookID = ?',
+      whereArgs: [listeningInfo.bookID],
+    );
+    return count > 0 ? listeningInfo : null;
   }
 
   Future<Book?> updateBook(Book book) async {
     final db = await instance.database;
-    await db.rawQuery(
-      "INSERT OR REPLACE INTO 'book'(id, title, release_year, author, genre, executor,"
-      "bitrate, image, time, size, series, description, book_number, isFavorite, isDownloaded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        book.id,
-        book.title,
-        book.releaseYear,
-        book.author,
-        book.genre,
-        book.executor,
-        book.bitrate,
-        book.image,
-        book.audio,
-        book.size,
-        book.series,
-        book.description,
-        book.bookNumber,
-        book.isFavorite ? 1 : 0,
-        book.isDownloaded ? 1 : 0,
-      ],
-    );
-    await updateListeningInfo(book.listeningInfo);
+    if ((await db.query('book', where: 'id = ?', whereArgs: [book.id])).isNotEmpty) {
+      await db.update('book', book.toMap(), where: 'id = ?', whereArgs: [book.id]);
+      await updateListeningInfo(book.listeningInfo);
+    } else {
+      await db.insert('book', book.toMap());
+      await createListeningInfo(book.listeningInfo);
+    }
     return book;
   }
 

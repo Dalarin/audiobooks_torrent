@@ -219,6 +219,7 @@ class DownloadingButton extends StatelessWidget {
               child: const Text('Да'),
               onPressed: () {
                 final bloc = context.read<BookBloc>();
+                book.isDownloaded = false;
                 bloc.add(DeleteBook(book: book, books: books));
                 Navigator.of(dialogContext).pop();
               },

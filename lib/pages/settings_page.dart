@@ -53,15 +53,13 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Card(
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.2,
-                  child: Column(
-                    children: [
-                      _themeSettingsRow(context, theme),
-                      _colorSettings(context, theme),
-                      _proxySettings(context, theme),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _themeSettingsRow(context, theme),
+                    _colorSettings(context, theme),
+                    _proxySettings(context, theme),
+                  ],
                 ),
               ),
             ),
@@ -77,12 +75,12 @@ class _SettingsPageState extends State<SettingsPage> {
       borderRadius: BorderRadius.circular(40),
       child: CircleAvatar(
         backgroundColor: color,
-        child: notifier.color == color ? const Icon(Icons.check) : null,
+        child: notifier.color.value == color.value ? const Icon(Icons.check) : null,
       ),
     );
   }
 
-  void _selectColorDialog(BuildContext context, SettingsNotifier notifier) {
+  void _showSelectColorDialog(BuildContext context, SettingsNotifier notifier) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -195,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _colorSettings(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
-      onTap: () => _selectColorDialog(context, settingsNotifier),
+      onTap: () => _showSelectColorDialog(context, settingsNotifier),
       title: Text(
         'Настройка основного цвета',
         style: Theme.of(context).textTheme.titleMedium,
