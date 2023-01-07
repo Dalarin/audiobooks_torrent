@@ -1,13 +1,13 @@
 import 'dart:developer';
 
 import 'package:path/path.dart';
+import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/models/book_list.dart';
+import 'package:rutracker_app/models/list_object.dart';
+import 'package:rutracker_app/models/listening_info.dart';
 import 'package:rutracker_app/providers/enums.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/book.dart';
-import '../models/book_list.dart';
-import '../models/list_object.dart';
-import '../models/listening_info.dart';
 
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
@@ -70,10 +70,7 @@ class DBHelper {
       await db.execute('''
     CREATE TABLE IF NOT EXISTS list_object(
       id_book $integerType,
-      id_list $integerType,
-      FOREIGN KEY(id_book) REFERENCES Book(id) ON DELETE CASCADE,
-      FOREIGN KEY(id_list) REFERENCES List(id) ON DELETE CASCADE
-    )     
+      id_list $integerType)     
     ''');
     } catch (_) {
       log('Cant create table List_Object');
@@ -133,6 +130,7 @@ class DBHelper {
 
   Future<bool> deleteBook(int bookId) async {
     final db = await instance.database;
+    await db.delete('list_object', where: 'id_book = ?', whereArgs: [bookId]);
     int count = await db.delete('book', where: 'id = ?', whereArgs: [bookId]);
     return count > 0;
   }
@@ -210,6 +208,7 @@ class DBHelper {
 
   Future<bool> deleteList(int listId) async {
     final db = await instance.database;
+    await db.delete('list_object', where: 'id_list = ?', whereArgs: [listId]);
     return await db.delete('list', where: 'id = ?', whereArgs: [listId]) > 0;
   }
 

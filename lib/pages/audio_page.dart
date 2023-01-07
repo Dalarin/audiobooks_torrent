@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rutracker_app/bloc/audio_bloc/audio_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/widgets/image.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AudioPage extends StatelessWidget {
@@ -29,6 +30,14 @@ class AudioPage extends StatelessWidget {
         )..add(InitializeAudio(book: book));
       },
       child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.bookmark_border_outlined),
+            ),
+          ],
+        ),
         body: BlocConsumer<AudioBloc, AudioState>(
           listener: (context, state) {
             if (state is AudioError) {
@@ -87,13 +96,69 @@ class AudioPage extends StatelessWidget {
     required AudioPlayer audioPlayer,
   }) {
     return SafeArea(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          _seekBar(context, audioPlayer),
-          _controlButtons(context, book, books, audioPlayer),
+      child: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width * 0.05,
+                    ),
+                    child: _bookInfo(book, context, audioPlayer),
+                  ),
+                  Column(
+                    children: [
+                      _seekBar(context, audioPlayer),
+                      _controlButtons(context, book, books, audioPlayer),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Column _bookInfo(Book book, BuildContext context, AudioPlayer audioPlayer) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomImage(
+          book: book,
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.4,
+          fit: BoxFit.fitWidth,
+        ),
+        const SizedBox(height: 15),
+        Text(
+          book.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 15),
+        StreamBuilder(
+          stream: audioPlayer.sequenceStateStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final state = snapshot.data as SequenceState;
+              String currentChapter = state.sequence[state.currentIndex].tag.title;
+              return Text(
+                currentChapter,
+                style: Theme.of(context).textTheme.labelLarge,
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      ],
     );
   }
 
@@ -182,22 +247,90 @@ class ControlButtons extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _customIconButton({
+    required BuildContext context,
+    required Function() function,
+    required String title,
+    required Widget icon,
+  }) {
+    return Column(
       children: [
         IconButton(
-          onPressed: () => _selectChaptersDialog(context),
-          icon: const Icon(Icons.library_music_outlined),
+          onPressed: function,
+          icon: icon,
         ),
-        IconButton(
-          onPressed: () {
-            final bloc = context.read<AudioBloc>();
-            bloc.add(const SkipSeconds(seconds: -10));
+        Text(title),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _audioControlButtons(context),
+        _audioControlAdditionalButtons(context),
+      ],
+    );
+  }
+
+  Row _audioControlAdditionalButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        StreamBuilder<double>(
+          stream: player.speedStream,
+          builder: (context, snapshot) {
+            return _customIconButton(
+              context: context,
+              function: () {
+                _selectAudioSpeedDialog(
+                  context: context,
+                  title: "Регулировка скорости",
+                  divisions: 10,
+                  min: 0.8,
+                  max: 2.0,
+                  stream: player.speedStream,
+                  onChanged: player.setSpeed,
+                );
+              },
+              title: 'Скорость',
+              icon: Text(
+                "${snapshot.data?.toStringAsFixed(1)}x",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            );
           },
-          icon: const Icon(Icons.replay_10_rounded),
         ),
+        _customIconButton(
+          context: context,
+          function: () => _selectChaptersDialog(context),
+          title: 'Главы',
+          icon: const Icon(Icons.list_alt_outlined),
+        ),
+        _customIconButton(
+          context: context,
+          function: () {},
+          title: 'Таймер',
+          icon: const Icon(Icons.alarm),
+        ),
+        _customIconButton(
+          context: context,
+          function: () {},
+          title: 'Закладки',
+          icon: const Icon(Icons.bookmark_border_outlined),
+        ),
+      ],
+    );
+  }
+
+  Row _audioControlButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
         StreamBuilder<SequenceState?>(
           stream: player.sequenceStateStream,
           builder: (context, snapshot) => IconButton(
@@ -208,6 +341,13 @@ class ControlButtons extends StatelessWidget {
             ),
             onPressed: player.hasPrevious ? player.seekToPrevious : null,
           ),
+        ),
+        IconButton(
+          onPressed: () {
+            final bloc = context.read<AudioBloc>();
+            bloc.add(const SkipSeconds(seconds: -10));
+          },
+          icon: const Icon(Icons.replay_10_rounded),
         ),
         StreamBuilder<PlayerState>(
           stream: player.playerStateStream,
@@ -250,13 +390,6 @@ class ControlButtons extends StatelessWidget {
             }
           },
         ),
-        StreamBuilder<SequenceState?>(
-          stream: player.sequenceStateStream,
-          builder: (context, snapshot) => IconButton(
-            icon: const Icon(Icons.double_arrow_rounded),
-            onPressed: player.hasNext ? player.seekToNext : null,
-          ),
-        ),
         IconButton(
           onPressed: () {
             final bloc = context.read<AudioBloc>();
@@ -264,34 +397,68 @@ class ControlButtons extends StatelessWidget {
           },
           icon: const Icon(Icons.forward_10_outlined),
         ),
-        StreamBuilder<double>(
-          stream: player.speedStream,
-          builder: (context, snapshot) {
-            return IconButton(
-              icon: Text(
-                "${snapshot.data?.toStringAsFixed(1)}x",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              onPressed: () {
-                _selectAudioSpeedDialog(
-                  context: context,
-                  title: "Регулировка скорости",
-                  divisions: 10,
-                  min: 0.8,
-                  max: 2.0,
-                  stream: player.speedStream,
-                  onChanged: player.setSpeed,
-                );
-              },
-            );
-          },
+        StreamBuilder<SequenceState?>(
+          stream: player.sequenceStateStream,
+          builder: (context, snapshot) => IconButton(
+            icon: const Icon(Icons.double_arrow_rounded),
+            onPressed: player.hasNext ? player.seekToNext : null,
+          ),
         ),
       ],
     );
   }
+
+  void _selectAudioSpeedDialog({
+    required BuildContext context,
+    required String title,
+    required int divisions,
+    required double min,
+    required double max,
+    String valueSuffix = '',
+    required Stream<double> stream,
+    required ValueChanged<double> onChanged,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(32.0),
+            ),
+          ),
+          title: Text(title, textAlign: TextAlign.center),
+          content: StreamBuilder<double>(
+            stream: stream,
+            builder: (context, snapshot) {
+              return SizedBox(
+                height: 100.0,
+                child: Column(
+                  children: [
+                    Text(
+                      '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24.0,
+                      ),
+                    ),
+                    Slider(
+                      divisions: divisions,
+                      min: min,
+                      max: max,
+                      value: snapshot.data ?? 1.0,
+                      onChanged: onChanged,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
 }
 
 class SeekBar extends StatefulWidget {
@@ -319,63 +486,44 @@ class _SeekBarState extends State<SeekBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         ExcludeSemantics(
-          child: Slider(
-            min: 0.0,
-            max: widget.duration.inMilliseconds.toDouble(),
-            value: min(_dragValue ?? widget.position.inMilliseconds.toDouble(), widget.duration.inMilliseconds.toDouble()),
-            onChanged: (value) {
-              setState(() {
-                _dragValue = value;
-                if (widget.onChanged != null) {
-                  widget.onChanged!(Duration(milliseconds: value.round()));
+          child: SliderTheme(
+            data: Theme.of(context).sliderTheme.copyWith(
+                  overlayShape: SliderComponentShape.noThumb,
+                ),
+            child: Slider(
+              min: 0.0,
+              max: widget.duration.inMilliseconds.toDouble(),
+              value: min(_dragValue ?? widget.position.inMilliseconds.toDouble(), widget.duration.inMilliseconds.toDouble()),
+              onChanged: (value) {
+                setState(() {
+                  _dragValue = value;
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(Duration(milliseconds: value.round()));
+                  }
+                });
+              },
+              onChangeEnd: (value) {
+                if (widget.onChangeEnd != null) {
+                  widget.onChangeEnd!(Duration(milliseconds: value.round()));
                 }
-              });
-            },
-            onChangeEnd: (value) {
-              if (widget.onChangeEnd != null) {
-                widget.onChangeEnd!(Duration(milliseconds: value.round()));
-              }
-              _dragValue = null;
-            },
+                _dragValue = null;
+              },
+            ),
           ),
         ),
-        Positioned(
-          right: 16.0,
-          bottom: 0.0,
-          child: Text(
-            RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$').firstMatch("$_remaining")?.group(1) ?? '$_remaining',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+        Text(
+          RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$').firstMatch("$_remaining")?.group(1) ?? '$_remaining',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
   }
 
   Duration get _remaining => widget.duration - widget.position;
-}
-
-class HiddenThumbComponentShape extends SliderComponentShape {
-  @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) => Size.zero;
-
-  @override
-  void paint(
-    PaintingContext context,
-    Offset center, {
-    required Animation<double> activationAnimation,
-    required Animation<double> enableAnimation,
-    required bool isDiscrete,
-    required TextPainter labelPainter,
-    required RenderBox parentBox,
-    required SliderThemeData sliderTheme,
-    required TextDirection textDirection,
-    required double value,
-    required double textScaleFactor,
-    required Size sizeWithOverflow,
-  }) {}
 }
 
 class PositionData {
@@ -386,53 +534,3 @@ class PositionData {
   PositionData(this.position, this.bufferedPosition, this.duration);
 }
 
-void _selectAudioSpeedDialog({
-  required BuildContext context,
-  required String title,
-  required int divisions,
-  required double min,
-  required double max,
-  String valueSuffix = '',
-  required Stream<double> stream,
-  required ValueChanged<double> onChanged,
-}) {
-  showDialog<void>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(32.0),
-          ),
-        ),
-        title: Text(title, textAlign: TextAlign.center),
-        content: StreamBuilder<double>(
-          stream: stream,
-          builder: (context, snapshot) {
-            return SizedBox(
-              height: 100.0,
-              child: Column(
-                children: [
-                  Text(
-                    '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24.0,
-                    ),
-                  ),
-                  Slider(
-                    divisions: divisions,
-                    min: min,
-                    max: max,
-                    value: snapshot.data ?? 1.0,
-                    onChanged: onChanged,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
-}

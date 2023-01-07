@@ -147,9 +147,9 @@ class Book {
 
   static List<Book> filter(List<Filter> filter, List<Book> book) {
     if (!filter.contains(Filter.completed)) {
-      book.removeWhere((element) => !element.listeningInfo.isCompleted);
+      book.removeWhere((element) => element.listeningInfo.isCompleted);
     } else if (!filter.contains(Filter.downloaded)) {
-      book.removeWhere((element) => !element.isDownloaded);
+      book.removeWhere((element) => element.isDownloaded);
     } else if (!filter.contains(Filter.listening)) {
       book.removeWhere((element) => element.listeningInfo.index != 0);
     }

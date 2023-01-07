@@ -4,6 +4,7 @@ import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart'
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/torrent_bloc/torrent_bloc.dart';
 import 'package:rutracker_app/models/book.dart';
+import 'package:rutracker_app/pages/comments_page.dart';
 import 'package:rutracker_app/widgets/downloading_button.dart';
 import 'package:rutracker_app/widgets/image.dart';
 
@@ -50,7 +51,12 @@ class _BookPageState extends State<BookPage> {
                 slivers: [
                   SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _bookPageContent(context, widget.authenticationBloc, widget.book, widget.books),
+                    child: _bookPageContent(
+                      context,
+                      widget.authenticationBloc,
+                      widget.book,
+                      widget.books,
+                    ),
                   )
                 ],
               ),
@@ -78,35 +84,45 @@ class _BookPageState extends State<BookPage> {
           ],
         ),
         const SizedBox(height: 15),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: _aboutSection(context, book),
-        ),
+        _aboutSection(context, book),
         const SizedBox(height: 15),
         _descriptionSection(context, book),
         const SizedBox(height: 15),
-        _additionalActions(context, book, books),
+        _additionalActions(context, book, books, bloc),
       ],
     );
   }
 
-  Widget _additionalActions(BuildContext context, Book book, List<Book> list) {
+  Widget _additionalActions(BuildContext context, Book book, List<Book> list, AuthenticationBloc bloc) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.15,
       child: Column(
         children: [
           ListTile(
             dense: true,
-            enabled: false,
             leading: const Icon(Icons.comment),
             title: const Text('Комментарии'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CommentsPage(
+                    bloc: bloc,
+                    book: book,
+                  ),
+                ),
+              );
+            },
           ),
-          ListTile(
-            dense: true,
-            leading: const Icon(Icons.settings),
-            title: const Text('Настройки книги'),
-            onTap: () => _showSettingsDialog(context, book, list),
+          Tooltip(
+            message: 'Редактирование аудиокниги разблокируется при ее скачивании или добавлении в избранное',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.settings),
+              title: const Text('Настройки книги'),
+              enabled: book.isFavorite || book.isDownloaded,
+              onTap: () => _showSettingsDialog(context, book, list),
+            ),
           ),
         ],
       ),
@@ -147,31 +163,34 @@ class _BookPageState extends State<BookPage> {
   }
 
   Widget _aboutSection(BuildContext context, Book book) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _aboutElement(
-          context: context,
-          title: 'Жанр',
-          text: book.genre,
-          textAlign: TextAlign.start,
-          alignment: CrossAxisAlignment.start,
-        ),
-        _aboutElement(
-          context: context,
-          title: 'Исполнитель',
-          text: book.executor,
-          textAlign: TextAlign.center,
-          alignment: CrossAxisAlignment.center,
-        ),
-        _aboutElement(
-          context: context,
-          title: 'Аудио',
-          text: book.audio,
-          textAlign: TextAlign.end,
-          alignment: CrossAxisAlignment.end,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _aboutElement(
+            context: context,
+            title: 'Жанр',
+            text: book.genre,
+            textAlign: TextAlign.start,
+            alignment: CrossAxisAlignment.start,
+          ),
+          _aboutElement(
+            context: context,
+            title: 'Исполнитель',
+            text: book.executor,
+            textAlign: TextAlign.center,
+            alignment: CrossAxisAlignment.center,
+          ),
+          _aboutElement(
+            context: context,
+            title: 'Аудио',
+            text: book.audio,
+            textAlign: TextAlign.end,
+            alignment: CrossAxisAlignment.end,
+          ),
+        ],
+      ),
     );
   }
 

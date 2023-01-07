@@ -34,7 +34,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         cookieDirectory: appDocDir.path,
       );
       rutrackerApi = objects[0] as RutrackerApi;
-      print(objects[1]);
       if (objects[1] as bool) {
         emit(AuthenticationSuccess());
       } else {

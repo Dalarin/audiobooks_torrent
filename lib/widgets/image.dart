@@ -7,6 +7,7 @@ class CustomImage extends StatelessWidget {
   final double width;
   final double height;
   final double borderRadius;
+  final BoxFit fit;
 
   const CustomImage({
     Key? key,
@@ -14,6 +15,7 @@ class CustomImage extends StatelessWidget {
     required this.width,
     required this.height,
     this.borderRadius = 10,
+    this.fit = BoxFit.cover,
   }) : super(key: key);
 
   @override
@@ -37,7 +39,7 @@ class CustomImage extends StatelessWidget {
       filterQuality: FilterQuality.high,
       height: height,
       width: width,
-      fit: BoxFit.cover,
+      fit: fit,
     );
   }
 
@@ -49,7 +51,7 @@ class CustomImage extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
       },
       errorBuilder: (context, error, stackTrace) => _errorImage(width, height),
-      fit: BoxFit.cover,
+      fit: fit,
       filterQuality: FilterQuality.high,
       height: height,
       width: width,

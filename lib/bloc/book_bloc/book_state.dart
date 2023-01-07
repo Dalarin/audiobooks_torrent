@@ -21,14 +21,12 @@ class BookLoaded extends BookState {
 
 class BookCommentsLoaded extends BookState {
   final List<Comment> comments;
+  final int start;
 
-  const BookCommentsLoaded({required this.comments});
-}
-
-class BookUpdated extends BookState {
-  final List<Book> books;
-
-  const BookUpdated({required this.books});
+  const BookCommentsLoaded({
+    required this.comments,
+    required this.start,
+  });
 }
 
 class DBBookLoaded extends BookState {
@@ -42,7 +40,6 @@ class BookError extends BookState {
 
   const BookError({required this.message});
 }
-
 
 class CommentError extends BookState {
   final String message;

@@ -120,7 +120,7 @@ class HomePage extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return BlocConsumer<BookBloc, BookState>(
-            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 3, filter: [])),
+            bloc: context.read<BookBloc>()..add(const GetFavoritesBooks(sortOrder: Sort.standart, limit: 3, filter: Filter.values)),
             listener: (context, state) {
               if (state is BookError) {
                 ScaffoldMessenger.of(context).showSnackBar(

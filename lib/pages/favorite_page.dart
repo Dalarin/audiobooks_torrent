@@ -150,7 +150,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         return AlertDialog(
           title: const Text('Фильтр'),
           content: StatefulBuilder(
-            builder: (context, stateSetter) {
+            builder: (_, stateSetter) {
               return SizedBox(
                 height: MediaQuery.of(context).size.height * 0.35,
                 width: MediaQuery.of(context).size.height,
@@ -175,20 +175,16 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
 
   CheckboxListTile _filterListTile(Filter filter, SettingsNotifier notifier, StateSetter stateSetter, BuildContext context) {
     return CheckboxListTile(
-        title: Text(filter.text),
-        value: notifier.filter.contains(filter),
-        onChanged: (bool? value) {
-          stateSetter(() {
-            if (value == true) {
-              notifier.filter.add(filter);
-            } else {
-              notifier.filter.remove(filter);
-            }
-          });
-          final bloc = context.read<BookBloc>();
-          bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
-        },
-      );
+      title: Text(filter.text),
+      value: notifier.filter.contains(filter),
+      onChanged: (bool? value) {
+        final filterList = notifier.filter;
+        stateSetter(() => value == true ? filterList.add(filter) : filterList.remove(filter));
+        notifier.filter = filterList;
+        final bloc = context.read<BookBloc>();
+        bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
+      },
+    );
   }
 
   Widget _favoriteActionBar(BuildContext context, SettingsNotifier notifier) {
