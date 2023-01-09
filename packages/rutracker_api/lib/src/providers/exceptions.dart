@@ -1,7 +1,7 @@
-class AuthenticationError implements Exception {
+class AuthenticationException implements Exception {
   String message;
 
-  AuthenticationError(this.message);
+  AuthenticationException(this.message);
 
   @override
   String toString() {

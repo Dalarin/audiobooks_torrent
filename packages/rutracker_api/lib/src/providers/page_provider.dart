@@ -41,25 +41,34 @@ class PageProvider {
   }
 
   Future<bool> authentication(String username, String password) async {
-    Response response = await _dio.post(
-      _loginUrl,
-      data: FormData.fromMap({
-        'login_username': username,
-        'login_password': password,
-        'login': 'Вход',
-      }),
-    );
-    if (response.statusCode == 302) {
-      _authenticated = true;
-      return true;
-    } else {
-      throw AuthenticationError('Ошибка авторизации');
+    try {
+      Response response = await _dio.post(
+        _loginUrl,
+        data: FormData.fromMap({
+          'login_username': username,
+          'login_password': password,
+          'login': 'Вход',
+        }),
+      );
+      if (response.statusCode == 302) {
+        _authenticated = true;
+        return true;
+      } else {
+        throw AuthenticationException('Ошибка авторизации');
+      }
+    } on DioError catch (exception) {
+      if (exception.message.contains('402 Payment Required')) {
+        throw AuthenticationException('Ошибка прокси-сервера. Попробуйте настроить другой сервер или поменять сеть');
+      }
+    } catch (_) {
+      rethrow;
     }
+    return false;
   }
 
   Future<Response> searchByQuery(String query, Categories categories) async {
     if (!_authenticated) {
-      throw AuthenticationError('Пользователь не авторизован');
+      throw AuthenticationException('Пользователь не авторизован');
     } else {
       Response response = await _dio.post(
         _searchUrl,
@@ -75,7 +84,7 @@ class PageProvider {
 
   Future<Response> getCommentsResponse(String link, int start) async {
     if (!_authenticated) {
-      throw AuthenticationError('Пользователь не авторизован');
+      throw AuthenticationException('Пользователь не авторизован');
     } else {
       Response response = await _dio.get(
         _topicUrl,
@@ -91,7 +100,7 @@ class PageProvider {
 
   Future<Response> getPageResponse(String link) async {
     if (!_authenticated) {
-      throw AuthenticationError('Пользователь не авторизован');
+      throw AuthenticationException('Пользователь не авторизован');
     } else {
       Response response = await _dio.get(
         _topicUrl,
@@ -107,7 +116,7 @@ class PageProvider {
 
   Future<File> downloadTorrentFile(String link, String pathDirectory) async {
     if (!_authenticated) {
-      throw AuthenticationError('Пользователь не авторизован');
+      throw AuthenticationException('Пользователь не авторизован');
     } else {
       final urlPath = '$_host/forum/dl.php';
       await _dio.download(
