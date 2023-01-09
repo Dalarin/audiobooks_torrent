@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/torrent_bloc/torrent_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/pages/comments_page.dart';
 import 'package:rutracker_app/widgets/downloading_button.dart';
@@ -40,7 +41,9 @@ class _BookPageState extends State<BookPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TorrentBloc(api: widget.authenticationBloc.rutrackerApi),
+      create: (context) => TorrentBloc(
+        api: widget.authenticationBloc.rutrackerApi,
+      ),
       child: BlocBuilder<BookBloc, BookState>(
         builder: (context, state) {
           return SafeArea(
@@ -93,7 +96,12 @@ class _BookPageState extends State<BookPage> {
     );
   }
 
-  Widget _additionalActions(BuildContext context, Book book, List<Book> list, AuthenticationBloc bloc) {
+  Widget _additionalActions(
+    BuildContext context,
+    Book book,
+    List<Book> list,
+    AuthenticationBloc bloc,
+  ) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.15,
       child: Column(
@@ -101,7 +109,7 @@ class _BookPageState extends State<BookPage> {
           ListTile(
             dense: true,
             leading: const Icon(Icons.comment),
-            title: const Text('Комментарии'),
+            title: Text(S.of(context).comments),
             onTap: () {
               Navigator.push(
                 context,
@@ -115,11 +123,11 @@ class _BookPageState extends State<BookPage> {
             },
           ),
           Tooltip(
-            message: 'Редактирование аудиокниги разблокируется при ее скачивании или добавлении в избранное',
+            message: S.of(context).bookSettingsTooltip,
             child: ListTile(
               dense: true,
               leading: const Icon(Icons.settings),
-              title: const Text('Настройки книги'),
+              title: Text(S.of(context).bookSettings),
               enabled: book.isFavorite || book.isDownloaded,
               onTap: () => _showSettingsDialog(context, book, list),
             ),
@@ -170,21 +178,21 @@ class _BookPageState extends State<BookPage> {
         children: [
           _aboutElement(
             context: context,
-            title: 'Жанр',
+            title: S.of(context).genre,
             text: book.genre,
             textAlign: TextAlign.start,
             alignment: CrossAxisAlignment.start,
           ),
           _aboutElement(
             context: context,
-            title: 'Исполнитель',
+            title: S.of(context).executor,
             text: book.executor,
             textAlign: TextAlign.center,
             alignment: CrossAxisAlignment.center,
           ),
           _aboutElement(
             context: context,
-            title: 'Аудио',
+            title: S.of(context).audio,
             text: book.audio,
             textAlign: TextAlign.end,
             alignment: CrossAxisAlignment.end,
@@ -317,12 +325,12 @@ class _BookPageState extends State<BookPage> {
       elevation: 0.0,
       actions: [
         IconButton(
-          isSelected: book.isFavorite,
           onPressed: () {
             book.isFavorite = !book.isFavorite;
             final bloc = context.read<BookBloc>();
             bloc.add(UpdateBook(book: book, books: books));
           },
+          isSelected: book.isFavorite,
           icon: const Icon(Icons.favorite_border_rounded),
           selectedIcon: const Icon(Icons.favorite_rounded),
         ),
@@ -342,7 +350,7 @@ class _BookPageState extends State<BookPage> {
   }) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (_) {
         return Dialog(
           backgroundColor: Colors.transparent,
           child: CustomImage(
@@ -361,26 +369,22 @@ class _BookPageState extends State<BookPage> {
       context: context,
       builder: (BuildContext _) {
         return AlertDialog(
-          title: const Text('Подробная информация о книге'),
-          content: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.3,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Год выпуска книги: ${book.releaseYear}'),
-                const Divider(),
-                Text('Серия: ${book.series}'),
-                const Divider(),
-                Text('Номер книги: ${book.bookNumber}'),
-                const Divider(),
-                Text('Битрейт: ${book.bitrate}'),
-                const Divider(),
-                Text('Размер книги: ${book.size}'),
-              ],
-            ),
+          title: Text(S.of(context).detailedInformation),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(S.of(context).releaseYear(book.releaseYear)),
+              const Divider(),
+              Text(S.of(context).series(book.series)),
+              const Divider(),
+              Text(S.of(context).bookNumber(book.bookNumber)),
+              const Divider(),
+              Text(S.of(context).bitrate(book.bitrate)),
+              const Divider(),
+              Text(S.of(context).bookSize(book.size)),
+            ],
           ),
         );
       },
@@ -392,26 +396,26 @@ class _BookPageState extends State<BookPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Настройки'),
+          title: Text(S.of(context).settings),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _textField(
                 context: context,
                 controller: titleController,
-                hint: 'Название книги',
+                hint: S.of(context).bookTitle,
               ),
               const SizedBox(height: 15),
               _textField(
                 context: context,
                 controller: imageController,
-                hint: 'Ссылка на изображение',
+                hint: S.of(context).bookLinkImage,
               ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Сохранить'),
+              child: Text(S.of(context).save),
               onPressed: () {
                 final bloc = context.read<BookBloc>();
                 book.title = titleController.text;

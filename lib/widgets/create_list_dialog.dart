@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book_list.dart';
 
 class CreateListDialog extends StatefulWidget {
@@ -29,11 +30,11 @@ class _CreateListDialogState extends State<CreateListDialog> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Создание списка',
+          S.of(context).createList,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         IconButton(
-          tooltip: 'Создать список',
+          tooltip: S.of(context).createList,
           onPressed: () {
             final bloc = context.read<ListBloc>();
             bloc.add(
@@ -71,13 +72,13 @@ class _CreateListDialogState extends State<CreateListDialog> {
             _textField(
               context: context,
               controller: _titleController,
-              hint: 'Название списка',
+              hint: S.of(context).listTitle,
             ),
             const SizedBox(height: 15),
             _textField(
               context: context,
               controller: _descriptionController,
-              hint: 'Описание списка',
+              hint: S.of(context).listDescription,
             ),
           ],
         ),

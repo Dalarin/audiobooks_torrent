@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/main.dart';
 import 'package:rutracker_app/providers/settings_manager.dart';
 
@@ -38,11 +39,10 @@ class AuthenticationPage extends StatelessWidget {
               elevation: 0.0,
               backgroundColor: Colors.transparent,
               centerTitle: true,
-              title: const Text('Авторизация'),
+              title: Text(S.of(context).auth),
               actions: [
                 IconButton(
-                  tooltip: 'Кнопка перехода в приложение без авторизации. '
-                           'Рекомендуется нажимать после появления формы ввода',
+                  tooltip: S.of(context).authTooltip,
                   onPressed: () => _navBarPush(context, bloc),
                   icon: const Icon(Icons.exit_to_app),
                 ),
@@ -112,11 +112,17 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            const Text("Логин", style: TextStyle(fontSize: 17)),
+            Text(
+              S.of(context).username,
+              style: const TextStyle(fontSize: 17),
+            ),
             const SizedBox(height: 10),
             _textInput(false, titleController),
             const SizedBox(height: 15),
-            const Text("Пароль", style: TextStyle(fontSize: 17)),
+            Text(
+              S.of(context).password,
+              style: const TextStyle(fontSize: 17),
+            ),
             const SizedBox(height: 10),
             _textInput(true, passwordController),
             const SizedBox(height: 30),
@@ -152,7 +158,7 @@ class _AuthenticationPageContentState extends State<AuthenticationPageContent> {
           ),
         );
       },
-      child: const Text('Войти'),
+      child:  Text(S.of(context).enter),
     );
   }
 }

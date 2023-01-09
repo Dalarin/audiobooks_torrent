@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/providers/enums.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/widgets/book_list.dart';
@@ -9,7 +10,10 @@ import 'package:rutracker_app/widgets/book_list.dart';
 class HomePage extends StatelessWidget {
   final AuthenticationBloc authenticationBloc;
 
-  const HomePage({Key? key, required this.authenticationBloc}) : super(key: key);
+  const HomePage({
+    Key? key,
+    required this.authenticationBloc,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +46,11 @@ class HomePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 15),
-        _title('Недавно прослушанное'),
+        _title(S.of(context).recentlyListened),
         const SizedBox(height: 15),
         _listeningBooksListBuilder(context, authenticationBloc),
         const SizedBox(height: 15),
-        _title('Избранное'),
+        _title(S.of(context).favorite),
         const SizedBox(height: 15),
         _favoriteBooksListBuilder(context, authenticationBloc),
       ],
@@ -82,8 +86,8 @@ class HomePage extends StatelessWidget {
               if (state is BookLoaded) {
                 return ElementsList(
                   list: state.books,
-                  emptyListText: 'Здесь будут находиться книги в процессе прослушивания',
                   bloc: authenticationBloc,
+                  emptyListText: S.of(context).emptyListeningList,
                 );
               } else if (state is BookLoading) {
                 return const Center(
@@ -92,8 +96,8 @@ class HomePage extends StatelessWidget {
               }
               return ElementsList(
                 list: const [],
-                emptyListText: 'Здесь будут находиться книги в процессе прослушивания',
                 bloc: authenticationBloc,
+                emptyListText: S.of(context).emptyListeningList,
               );
             },
           );
@@ -140,7 +144,7 @@ class HomePage extends StatelessWidget {
               if (state is BookLoaded) {
                 return ElementsList(
                   list: state.books,
-                  emptyListText: 'Здесь будут находиться ваши избранные книги',
+                  emptyListText: S.of(context).emptyFavoriteList,
                   bloc: authenticationBloc,
                 );
               } else if (state is BookLoading) {
@@ -150,7 +154,7 @@ class HomePage extends StatelessWidget {
               } else {
                 return ElementsList(
                   list: const [],
-                  emptyListText: 'Здесь будут находиться ваши избранные книги',
+                  emptyListText: S.of(context).emptyFavoriteList,
                   bloc: authenticationBloc,
                 );
               }

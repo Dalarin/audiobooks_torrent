@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book_list.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
 import 'package:rutracker_app/widgets/book_list.dart';
@@ -51,7 +52,7 @@ class _ListPageState extends State<ListPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: ElementsList(
                   list: widget.list.books,
-                  emptyListText: 'Здесь будут находиться ваши книги, добавленные в данный список',
+                  emptyListText: S.of(context).emptyBooksInList,
                   bloc: widget.authenticationBloc,
                 ),
               ),
@@ -62,15 +63,19 @@ class _ListPageState extends State<ListPage> {
     );
   }
 
-  void _showConfirmDeletingDialog(BuildContext context, BookList bookList, List<BookList> list) {
+  void _showConfirmDeletingDialog(
+    BuildContext context,
+    BookList bookList,
+    List<BookList> list,
+  ) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Удаление списка'),
+          title: Text(S.of(context).deletingList),
           content: Text.rich(
             TextSpan(
-              text: 'Вы уверены, что хотите удалить список ',
+              text: S.of(context).deleteApproval,
               children: [
                 TextSpan(
                   text: bookList.title,
@@ -83,7 +88,7 @@ class _ListPageState extends State<ListPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Да'),
+              child: Text(S.of(context).yes),
               onPressed: () {
                 final bloc = context.read<ListBloc>();
                 bloc.add(DeleteList(listId: bookList.id, list: list));
@@ -106,7 +111,9 @@ class _ListPageState extends State<ListPage> {
       controller: controller,
       maxLines: maxLines,
       decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
         hintText: hint,
         label: Text(hint),
       ),
@@ -118,20 +125,20 @@ class _ListPageState extends State<ListPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Изменение списка'),
+          title: Text(S.of(context).changeList),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _textField(
                 context: context,
                 controller: titleController,
-                hint: 'Название списка',
+                hint: S.of(context).listTitle,
               ),
               const SizedBox(height: 15),
               _textField(
                 context: context,
                 controller: descriptionController,
-                hint: 'Описание списка',
+                hint: S.of(context).listDescription,
                 maxLines: 3,
               ),
             ],
@@ -145,7 +152,7 @@ class _ListPageState extends State<ListPage> {
                 bloc.add(UpdateList(bookList: bookList, list: list));
                 Navigator.pop(dialogContext);
               },
-              child: const Text('Сохранить'),
+              child: Text(S.of(context).save),
             ),
           ],
         );
@@ -153,24 +160,30 @@ class _ListPageState extends State<ListPage> {
     );
   }
 
-  void _showSettingsDialog(BuildContext context, BookList bookList, List<BookList> list) {
+  void _showSettingsDialog(
+    BuildContext context,
+    BookList bookList,
+    List<BookList> list,
+  ) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Настройки'),
+          title: Text(S.of(context).settings),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Настройки'),
+                title: Text(S.of(context).settings),
                 onTap: () => _showListChangingDialog(context, bookList, list),
               ),
               ListTile(
                 leading: const Icon(Icons.delete_forever),
-                title: const Text('Удалить список'),
-                onTap: () => _showConfirmDeletingDialog(context, bookList, list),
+                title: Text(S.of(context).deleteList),
+                onTap: () {
+                  _showConfirmDeletingDialog(context, bookList, list);
+                },
               )
             ],
           ),
@@ -179,7 +192,11 @@ class _ListPageState extends State<ListPage> {
     );
   }
 
-  AppBar _listPageAppBar(BuildContext context, BookList bookList, List<BookList> list) {
+  AppBar _listPageAppBar(
+    BuildContext context,
+    BookList bookList,
+    List<BookList> list,
+  ) {
     return AppBar(
       title: Tooltip(
         message: bookList.title,

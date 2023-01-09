@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/torrent_bloc/torrent_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/pages/audio_page.dart';
 
@@ -202,10 +203,10 @@ class DownloadingButton extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Удаление книги'),
+          title: Text(S.of(context).bookDeleting),
           content: Text.rich(
             TextSpan(
-              text: 'Вы уверены, что хотите удалить книгу ',
+              text: S.of(context).confirmDeletingBook,
               children: [
                 TextSpan(
                   text: book.title,
@@ -216,7 +217,7 @@ class DownloadingButton extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Да'),
+              child: Text(S.of(context).yes),
               onPressed: () {
                 final bloc = context.read<BookBloc>();
                 book.isDownloaded = false;
@@ -235,14 +236,11 @@ class DownloadingButton extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Выход'),
-          content: const Text(
-            'Вы хотите сохранить прогресс скачивания?'
-            ' Вы сможете продолжить скачивание позже',
-          ),
+          title: Text(S.of(context).exit),
+          content: Text(S.of(context).exitDialogText),
           actions: <Widget>[
             TextButton(
-              child: const Text('Да'),
+              child: Text(S.of(context).yes),
               onPressed: () {
                 Navigator.pop(context, true);
                 // Dismiss alert dialog
@@ -254,7 +252,7 @@ class DownloadingButton extends StatelessWidget {
                 bloc.add(CancelTorrent(book: book));
                 Navigator.pop(context, true);
               },
-              child: const Text('Нет'),
+              child: Text(S.of(context).no),
             ),
           ],
         );

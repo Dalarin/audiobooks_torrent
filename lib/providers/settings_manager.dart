@@ -19,11 +19,10 @@ class   SettingsNotifier with ChangeNotifier {
     '0xFF008000',
     'По умолчанию',
     false,
-    [...Filter.values],
+    Filter.values,
   );
 
   SettingsNotifier(Map<String, dynamic>? settings) {
-    2.isEven;
     if (settings != null) {
       _proxy = Proxy.fromMap(settings['proxy']);
       _color = Color(settings['color']);
@@ -64,16 +63,6 @@ class   SettingsNotifier with ChangeNotifier {
       fontFamily: "Product-Sans",
       useMaterial3: true,
       colorScheme: _defaultColorScheme,
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: _defaultColorScheme.inverseSurface,
-        contentTextStyle: TextStyle(color: _defaultColorScheme.onInverseSurface),
-      ),
-      sliderTheme: SliderThemeData(
-        activeTrackColor: _defaultColorScheme.primary,
-        inactiveTrackColor: _defaultColorScheme.surfaceVariant,
-        thumbColor: _defaultColorScheme.primary,
-      ),
     );
     notifyListeners();
   }
@@ -82,16 +71,6 @@ class   SettingsNotifier with ChangeNotifier {
     fontFamily: "Product-Sans",
     useMaterial3: true,
     colorScheme: _defaultColorScheme,
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: _defaultColorScheme.inverseSurface,
-      contentTextStyle: TextStyle(color: _defaultColorScheme.onInverseSurface),
-    ),
-    sliderTheme: SliderThemeData(
-      activeTrackColor: _defaultColorScheme.primary,
-      inactiveTrackColor: _defaultColorScheme.surfaceVariant,
-      thumbColor: _defaultColorScheme.primary,
-    ),
   );
 
   Proxy get proxy => _proxy;

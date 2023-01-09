@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/models/comment.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
@@ -27,7 +28,7 @@ class CommentsPage extends StatelessWidget {
       child: Builder(builder: (context) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Комментарии'),
+            title: Text(S.of(context).comments),
             centerTitle: true,
           ),
           floatingActionButton: FloatingActionButton(
@@ -51,7 +52,7 @@ class CommentsPage extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Комментарий'),
+          title: Text(S.of(context).comment),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -68,9 +69,9 @@ class CommentsPage extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Отправить'),
+              child: Text(S.of(context).send),
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Dismiss alert dialog
+                Navigator.of(dialogContext).pop();
               },
             ),
           ],
@@ -82,10 +83,23 @@ class CommentsPage extends StatelessWidget {
   Widget _commentsListViewBuilder(BuildContext context, int bookId) {
     return BlocConsumer(
       bloc: context.read<BookBloc>(),
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is CommentError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         if (state is BookCommentsLoaded) {
-          return _commentsListView(context, state.comments, state.start, bookId);
+          return _commentsListView(
+            context,
+            state.comments,
+            state.start,
+            bookId,
+          );
         } else if (state is CommentsLoading) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -96,7 +110,12 @@ class CommentsPage extends StatelessWidget {
     );
   }
 
-  Widget _commentsListView(BuildContext context, List<Comment> comments, int start, int bookId) {
+  Widget _commentsListView(
+    BuildContext context,
+    List<Comment> comments,
+    int start,
+    int bookId,
+  ) {
     if (comments.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +124,7 @@ class CommentsPage extends StatelessWidget {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: comments.length,
-              separatorBuilder: (_, index) => const Divider(),
+              separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (_, index) {
                 return _commentElement(comments[index]);
               },
@@ -116,14 +135,14 @@ class CommentsPage extends StatelessWidget {
               final bloc = context.read<BookBloc>();
               bloc.add(GetComments(bookId: bookId, start: start + 30, comments: comments));
             },
-            child: const Text('Загрузить новые'),
+            child: Text(S.of(context).loadNew),
           ),
         ],
       );
     }
     return Center(
       child: Text(
-        'Комментарии отсутствуют',
+        S.of(context).emptyComments,
         style: Theme.of(context).textTheme.headlineSmall,
       ),
     );

@@ -25,6 +25,7 @@ dependencies:
   shared_preferences: ^2.0.11
   sqflite: ^2.0.1
   torrent_task: ^0.3.0
+  intl: ^0.17.0
 
   flutter_localizations:
     sdk: flutter
@@ -52,3 +53,5 @@ flutter:
         - asset: assets/Product Sans Regular.ttf
         - asset: assets/Product Sans Italic.ttf
           style: italic
+flutter_intl:
+  enabled: true

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rutracker_app/bloc/audio_bloc/audio_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/widgets/image.dart';
 import 'package:rxdart/rxdart.dart';
@@ -63,7 +64,7 @@ class AudioPage extends StatelessWidget {
                     final bloc = context.read<AudioBloc>();
                     bloc.add(InitializeAudio(book: book));
                   },
-                  child: const Text('Повторить попытку'),
+                  child: Text(S.of(context).retry),
                 ),
               );
             }
@@ -290,7 +291,7 @@ class ControlButtons extends StatelessWidget {
                   onChanged: player.setSpeed,
                 );
               },
-              title: 'Скорость',
+              title: S.of(context).speed,
               icon: Text(
                 "${snapshot.data?.toStringAsFixed(1)}x",
                 style: const TextStyle(
@@ -303,19 +304,19 @@ class ControlButtons extends StatelessWidget {
         _customIconButton(
           context: context,
           function: () => _selectChaptersDialog(context),
-          title: 'Главы',
+          title: S.of(context).chapters,
           icon: const Icon(Icons.list_alt_outlined),
         ),
         _customIconButton(
           context: context,
           function: () {},
-          title: 'Таймер',
+          title: S.of(context).timer,
           icon: const Icon(Icons.alarm),
         ),
         _customIconButton(
           context: context,
           function: () {},
-          title: 'Закладки',
+          title: S.of(context).bookMarks,
           icon: const Icon(Icons.bookmark_border_outlined),
         ),
       ],
@@ -413,7 +414,7 @@ class ControlButtons extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Регулировка скорости'),
+          title: Text(S.of(context).speedAdjustment),
           content: StreamBuilder<double>(
             stream: stream,
             builder: (context, snapshot) {

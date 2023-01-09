@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/proxy.dart';
 import 'package:rutracker_app/providers/settings_manager.dart';
 
@@ -47,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context, theme, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Настройки'),
+            title: Text(S.of(context).settings),
           ),
           body: SafeArea(
             child: Padding(
@@ -69,13 +70,19 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _gridColorElement(BuildContext context, Color color, SettingsNotifier notifier) {
+  Widget _gridColorElement(
+    BuildContext context,
+    Color color,
+    SettingsNotifier notifier,
+  ) {
     return InkWell(
       onTap: () => notifier.color = color,
       borderRadius: BorderRadius.circular(40),
       child: CircleAvatar(
         backgroundColor: color,
-        child: notifier.color.value == color.value ? const Icon(Icons.check) : null,
+        child: notifier.color.value == color.value
+            ? const Icon(Icons.check)
+            : null,
       ),
     );
   }
@@ -85,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Выбор основного цвета'),
+          title: Text(S.of(context).colorSelecting),
           content: SizedBox(
             height: MediaQuery.of(context).size.height * 0.35,
             width: MediaQuery.of(context).size.width,
@@ -112,25 +119,25 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showProxySettingsDialog(BuildContext context, SettingsNotifier notifier) {
+  void _showProxySettingsDialog(
+      BuildContext context, SettingsNotifier notifier) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Настройка прокси'),
+          title: Text(S.of(context).proxySettings),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Поля Имя пользователя и Пароль являются опциональными. '
-                'Настройки будут применены после перезагрузки приложения',
+                S.of(context).proxySettingsTooltip,
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.justify,
               ),
               _textField(
                 context: context,
                 controller: hostController,
-                hint: 'Хост (ip-адрес)',
+                hint: S.of(context).ip,
                 formatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'\d*\.?\d*')),
                 ],
@@ -138,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
               _textField(
                 context: context,
                 controller: portController,
-                hint: 'Порт',
+                hint: S.of(context).port,
                 formatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(5),
@@ -147,18 +154,18 @@ class _SettingsPageState extends State<SettingsPage> {
               _textField(
                 context: context,
                 controller: userController,
-                hint: 'Имя пользователя',
+                hint: S.of(context).username,
               ),
               _textField(
                 context: context,
                 controller: passwordController,
-                hint: 'Пароль',
+                hint: S.of(context).password,
               ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Сохранить'),
+              child: Text(S.of(context).save),
               onPressed: () {
                 notifier.proxy = Proxy(
                   host: hostController.text,
@@ -191,30 +198,35 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _colorSettings(BuildContext context, SettingsNotifier settingsNotifier) {
+  Widget _colorSettings(
+    BuildContext context,
+    SettingsNotifier settingsNotifier,
+  ) {
     return ListTile(
       onTap: () => _showSelectColorDialog(context, settingsNotifier),
       title: Text(
-        'Настройка основного цвета',
+        S.of(context).colorSettings,
         style: Theme.of(context).textTheme.titleMedium,
       ),
     );
   }
 
-  Widget _proxySettings(BuildContext context, SettingsNotifier settingsNotifier) {
+  Widget _proxySettings(
+      BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
       onTap: () => _showProxySettingsDialog(context, settingsNotifier),
       title: Text(
-        'Настройка прокси',
+        S.of(context).proxySettings,
         style: Theme.of(context).textTheme.titleMedium,
       ),
     );
   }
 
-  Widget _themeSettingsRow(BuildContext context, SettingsNotifier settingsNotifier) {
+  Widget _themeSettingsRow(
+      BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
       title: Text(
-        'Темная тема',
+        S.of(context).darkTheme,
         style: Theme.of(context).textTheme.titleMedium,
       ),
       trailing: Switch(

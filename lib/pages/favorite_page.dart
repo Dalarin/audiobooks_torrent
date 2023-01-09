@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book_list.dart';
 import 'package:rutracker_app/pages/list_page.dart';
 import 'package:rutracker_app/providers/enums.dart';
@@ -37,7 +38,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Избранное'),
+        title: Text(S.of(context).favorite),
         bottom: TabBar(
           unselectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.normal,
@@ -46,9 +47,9 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
             fontWeight: FontWeight.bold,
           ),
           controller: tabController,
-          tabs: const [
-            Tab(text: 'Избранное'),
-            Tab(text: 'Списки'),
+          tabs: [
+            Tab(text: S.of(context).favorite),
+            Tab(text: S.of(context).lists),
           ],
         ),
       ),
@@ -66,38 +67,25 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
   Widget _favoritePageContent(BuildContext context) {
     return Column(
       children: [
-          Expanded(
-            child: TabBarView(
-              controller: tabController,
-              children: [
-                _favoriteTab(context, widget.authenticationBloc),
-                _listTab(),
-              ],
-            ),
+        Expanded(
+          child: TabBarView(
+            controller: tabController,
+            children: [
+              _favoriteTab(context, widget.authenticationBloc),
+              _listTab(),
+            ],
           ),
+        ),
       ],
     );
   }
 
-  Widget _action({
-    required BuildContext context,
-    required Function(BuildContext) function,
-    required List<Widget> children,
-  }) {
-    return InkWell(
-      onTap: () => function(context),
-      child: SizedBox(
-        height: 50,
-        width: MediaQuery.of(context).size.width * 0.5 - 15,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: children,
-        ),
-      ),
-    );
-  }
-
-  Widget _sortListTile(BuildContext context, Sort sort, StateSetter setter, SettingsNotifier settingsNotifier) {
+  Widget _sortListTile(
+    BuildContext context,
+    Sort sort,
+    StateSetter setter,
+    SettingsNotifier settingsNotifier,
+  ) {
     return RadioListTile(
       title: Text(sort.text),
       value: sort.text,
@@ -106,7 +94,11 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         setter.call(() {
           settingsNotifier.sort = sort;
           final bloc = context.read<BookBloc>();
-          bloc.add(GetFavoritesBooks(sortOrder: sort, limit: 400, filter: settingsNotifier.filter));
+          bloc.add(GetFavoritesBooks(
+            sortOrder: sort,
+            limit: 400,
+            filter: settingsNotifier.filter,
+          ));
         });
       },
     );
@@ -117,7 +109,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Сортировка'),
+          title: Text(S.of(context).sort),
           content: SizedBox(
             height: MediaQuery.of(context).size.height * 0.35,
             width: MediaQuery.of(context).size.width,
@@ -125,9 +117,14 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
               builder: (_, stateSetter) {
                 return ListView.separated(
                   itemBuilder: (_, index) {
-                    return _sortListTile(context, Sort.values[index], stateSetter, settingsNotifier);
+                    return _sortListTile(
+                      context,
+                      Sort.values[index],
+                      stateSetter,
+                      settingsNotifier,
+                    );
                   },
-                  separatorBuilder: (context, index) => const Divider(),
+                  separatorBuilder: (_, __) => const Divider(),
                   itemCount: Sort.values.length,
                 );
               },
@@ -143,7 +140,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Фильтр'),
+          title: Text(S.of(context).filter),
           content: StatefulBuilder(
             builder: (_, stateSetter) {
               return SizedBox(
@@ -161,7 +158,12 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
   ListView _filterList(SettingsNotifier notifier, StateSetter stateSetter, BuildContext context) {
     return ListView.separated(
       itemBuilder: (_, index) {
-        return _filterListTile(Filter.values[index], notifier, stateSetter, context);
+        return _filterListTile(
+          Filter.values[index],
+          notifier,
+          stateSetter,
+          context,
+        );
       },
       separatorBuilder: (context, index) => const Divider(),
       itemCount: Filter.values.length,
@@ -174,51 +176,51 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
       value: notifier.filter.contains(filter),
       onChanged: (bool? value) {
         final filterList = notifier.filter;
-        stateSetter(() => value == true ? filterList.add(filter) : filterList.remove(filter));
-        notifier.filter = filterList;
         final bloc = context.read<BookBloc>();
-        bloc.add(GetFavoritesBooks(sortOrder: notifier.sort, limit: 400, filter: notifier.filter));
+        stateSetter(() {
+          if (value == true) {
+            filterList.add(filter);
+          } else {
+            filterList.remove(filter);
+          }
+        });
+        notifier.filter = filterList;
+        bloc.add(GetFavoritesBooks(
+          sortOrder: notifier.sort,
+          limit: 400,
+          filter: notifier.filter,
+        ));
       },
     );
   }
 
   Widget _favoriteActionBar(BuildContext context, SettingsNotifier notifier) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 55,
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _action(
-            context: context,
-            function: (context) {
-              _showSortDialog(context, notifier);
-            },
-            children: [
-              const Text(
-                'Сортировать',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(notifier.sort.text),
-            ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: ListTile(
+            onTap: () => _showSortDialog(context, notifier),
+            title: Text(
+              S.of(context).sort,
+              textAlign: TextAlign.center,
+            ),
+            subtitle: Text(
+              notifier.sort.text,
+              textAlign: TextAlign.center,
+            ),
           ),
-          _action(
-            context: context,
-            function: (context) {
-              _showFilterDialog(context, notifier);
-            },
-            children: const [
-              Text(
-                'Фильтровать',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+        ),
+        Expanded(
+          child: ListTile(
+            onTap: () => _showFilterDialog(context, notifier),
+            title: Text(
+              S.of(context).filter,
+              textAlign: TextAlign.center,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -235,7 +237,10 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
     );
   }
 
-  Widget _favoriteBooksListBuilder(BuildContext context, SettingsNotifier notifier) {
+  Widget _favoriteBooksListBuilder(
+    BuildContext context,
+    SettingsNotifier notifier,
+  ) {
     final bloc = context.read<BookBloc>();
     return Expanded(
       child: BlocConsumer<BookBloc, BookState>(
@@ -255,7 +260,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
           if (state is BookLoaded) {
             return ElementsList(
               list: state.books,
-              emptyListText: 'Здесь будут находиться ваши избранные книги',
+              emptyListText: S.of(context).emptyFavoriteList,
               bloc: widget.authenticationBloc,
             );
           } else if (state is BookLoading) {
@@ -265,7 +270,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
           }
           return ElementsList(
             list: const [],
-            emptyListText: 'Здесь будут находиться ваши избранные книги',
+            emptyListText: S.of(context).emptyFavoriteList,
             bloc: widget.authenticationBloc,
           );
         },
@@ -378,7 +383,7 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
         ),
       );
     }
-    return _emptyListWidget(context, 'Отсутствуют созданные списки');
+    return _emptyListWidget(context, S.of(context).emptyListList);
   }
 
   Widget _listList(BuildContext context, List<BookList> list) {
@@ -430,13 +435,13 @@ class _FavoritePageState extends State<FavoritePage> with TickerProviderStateMix
           },
         );
       },
-      child: const Text('Создать новый список'),
+      child: Text(S.of(context).createList),
     );
   }
 
   Widget _listTab() {
     return BlocProvider<ListBloc>(
-      create: (context) => ListBloc(
+      create: (_) => ListBloc(
         repository: ListRepository(),
       ),
       child: Builder(

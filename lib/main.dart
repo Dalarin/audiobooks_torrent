@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/pages/authentication_page.dart';
 import 'package:rutracker_app/pages/favorite_page.dart';
 import 'package:rutracker_app/pages/home_page.dart';
@@ -20,7 +22,7 @@ void main() async {
   final settings = await StorageManager.readSettings();
   return runApp(
     ChangeNotifierProvider<SettingsNotifier>(
-      create: (_)  => SettingsNotifier(settings),
+      create: (_) => SettingsNotifier(settings),
       child: const Application(),
     ),
   );
@@ -36,11 +38,12 @@ class Application extends StatelessWidget {
         return MaterialApp(
           theme: settings.theme,
           localizationsDelegates: const [
+            S.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('ru', 'RU'), Locale('en')],
+          supportedLocales: S.delegate.supportedLocales,
           title: 'Аудиокниги - Торрент',
           home: AuthenticationPage(notifier: settings),
         );
@@ -70,19 +73,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   void initState() {
     _children.addAll([
-      HomePage(
-        authenticationBloc: widget.authenticationBloc,
-      ),
-      SearchPage(
-        authenticationBloc: widget.authenticationBloc,
-      ),
-      FavoritePage(
-        authenticationBloc: widget.authenticationBloc,
-      ),
-      SettingsPage(
-        authenticationBloc: widget.authenticationBloc,
-        notifier: widget.notifier,
-      ),
+      HomePage(authenticationBloc: widget.authenticationBloc),
+      SearchPage(authenticationBloc: widget.authenticationBloc),
+      FavoritePage(authenticationBloc: widget.authenticationBloc),
+      SettingsPage(authenticationBloc: widget.authenticationBloc, notifier: widget.notifier),
     ]);
     super.initState();
   }
@@ -94,11 +88,23 @@ class _BottomNavBarState extends State<BottomNavBar> {
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: onTap,
         selectedIndex: _currentIndex,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Дом'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Поиск'),
-          NavigationDestination(icon: Icon(Icons.favorite), label: 'Избранное'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Настройки'),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            label: S.of(context).home,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.search),
+            label: S.of(context).search,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.favorite),
+            label: S.of(context).favorite,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings),
+            label: S.of(context).settings,
+          ),
         ],
       ),
     );

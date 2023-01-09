@@ -4,6 +4,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/list_bloc/list_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/book.dart';
 import 'package:rutracker_app/models/book_list.dart';
 import 'package:rutracker_app/pages/book_page.dart';
@@ -148,7 +149,7 @@ class BookElement extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           insetPadding: const EdgeInsets.all(10),
-          title: const Text('Меню действий'),
+          title: Text(S.of(context).actionMenu),
           content: SizedBox(
             height: MediaQuery.of(context).size.height * 0.25,
             child: Column(
@@ -161,7 +162,7 @@ class BookElement extends StatelessWidget {
                     Icons.favorite,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: 'Удалить из избранного',
+                  title: S.of(context).deleteFromFavorites,
                   function: (context) {
                     book.isFavorite = !book.isFavorite;
                     final bloc = context.read<BookBloc>();
@@ -174,7 +175,7 @@ class BookElement extends StatelessWidget {
                   context: context,
                   book: book,
                   icon: const Icon(Icons.check),
-                  title: !book.listeningInfo.isCompleted ? 'Отметить прослушанным' : 'Отметить непрослушанным',
+                  title: !book.listeningInfo.isCompleted ? S.of(context).markListened : S.of(context).markUnlistened,
                   function: (context) {
                     book.listeningInfo.isCompleted = !book.listeningInfo.isCompleted;
                     final bloc = context.read<BookBloc>();
@@ -187,7 +188,7 @@ class BookElement extends StatelessWidget {
                   context: context,
                   book: book,
                   icon: const Icon(Icons.list_alt_rounded),
-                  title: 'Списки',
+                  title: S.of(context).lists,
                   function: (context) {
                     _listSelectionDialog(context, book);
                   },
@@ -197,7 +198,7 @@ class BookElement extends StatelessWidget {
                   context: context,
                   book: book,
                   icon: const Icon(Icons.download),
-                  title: 'Скачать книгу',
+                  title: S.of(context).downloadBook,
                   function: (context) {
                     Navigator.push(
                       context,
@@ -268,7 +269,7 @@ class BookElement extends StatelessWidget {
     }
     return _emptyListWidget(
       context,
-      'Здесь будут находиться ваши списки',
+      S.of(context).emptyListList,
     );
   }
 
@@ -308,7 +309,7 @@ class BookElement extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Выбор списков',
+                    S.of(context).listSelection,
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.start,
                   ),

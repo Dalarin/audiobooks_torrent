@@ -4,6 +4,7 @@ import 'package:rutracker_api/rutracker_api.dart';
 import 'package:rutracker_app/bloc/authentication_bloc/authentication_bloc.dart';
 import 'package:rutracker_app/bloc/book_bloc/book_bloc.dart';
 import 'package:rutracker_app/bloc/search_bloc/search_bloc.dart';
+import 'package:rutracker_app/generated/l10n.dart';
 import 'package:rutracker_app/models/query_response.dart';
 import 'package:rutracker_app/pages/book_page.dart';
 import 'package:rutracker_app/repository/book_repository.dart';
@@ -38,7 +39,7 @@ class SearchPage extends StatelessWidget {
           return Scaffold(
             extendBody: true,
             appBar: AppBar(
-              title: const Text('Поиск'),
+              title:  Text(S.of(context).search),
               bottom: _searchField(context),
             ),
             body: BlocListener<BookBloc, BookState>(
@@ -179,7 +180,7 @@ class SearchPage extends StatelessWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
-            hintText: 'Введите книгу для поиска..',
+            hintText: S.of(context).searchHint,
           ),
         ),
       ),
@@ -228,7 +229,7 @@ class SearchPage extends StatelessWidget {
     }
     return _emptyListWidget(
       context,
-      'Ничего не найдено по Вашему запросу',
+      S.of(context).searchNothingFounded,
     );
   }
 
