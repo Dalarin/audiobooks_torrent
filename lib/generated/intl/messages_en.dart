@@ -71,6 +71,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "deletingList": MessageLookupByLibrary.simpleMessage("Deleting a list"),
         "detailedInformation": MessageLookupByLibrary.simpleMessage(
             "Detailed information about the book"),
+        "download": MessageLookupByLibrary.simpleMessage("Download"),
         "downloadBook":
             MessageLookupByLibrary.simpleMessage("Download the book"),
         "emptyBooksInList": MessageLookupByLibrary.simpleMessage(
@@ -98,6 +99,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "listSelection":
             MessageLookupByLibrary.simpleMessage("Selecting lists"),
         "listTitle": MessageLookupByLibrary.simpleMessage("List Title"),
+        "listen": MessageLookupByLibrary.simpleMessage("Listen"),
         "lists": MessageLookupByLibrary.simpleMessage("Lists"),
         "loadNew": MessageLookupByLibrary.simpleMessage("Load new"),
         "markListened":

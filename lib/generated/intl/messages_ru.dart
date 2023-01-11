@@ -71,6 +71,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "deletingList": MessageLookupByLibrary.simpleMessage("Удаление списка"),
         "detailedInformation": MessageLookupByLibrary.simpleMessage(
             "Подробная информация о книге"),
+        "download": MessageLookupByLibrary.simpleMessage("Скачать"),
         "downloadBook": MessageLookupByLibrary.simpleMessage("Скачать книгу"),
         "emptyBooksInList": MessageLookupByLibrary.simpleMessage(
             "Здесь будут находиться ваши книги, добавленные в данный список"),
@@ -96,6 +97,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Описание списка"),
         "listSelection": MessageLookupByLibrary.simpleMessage("Выбор списков"),
         "listTitle": MessageLookupByLibrary.simpleMessage("Название списка"),
+        "listen": MessageLookupByLibrary.simpleMessage("Слушать"),
         "lists": MessageLookupByLibrary.simpleMessage("Списки"),
         "loadNew": MessageLookupByLibrary.simpleMessage("Загрузить новые"),
         "markListened":

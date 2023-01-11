@@ -45,24 +45,25 @@ class TorrentBloc extends Bloc<TorrentEvent, TorrentState> {
 
   void _startTorrent(StartTorrent event, emit) async {
     try {
-      var directory = await getApplicationDocumentsDirectory(); // Получаем директорию приложения
-      var torrentFile = Directory('${directory.path}/torrents/${event.book.id}.torrent');
-      await api.downloadTorrentFile(link: event.book.id.toString(), pathDirectory: torrentFile.path).then((File file) async {
-        var bookDirectory = await _initDirectory(directory, event.book.id.toString());
-        var model = await Torrent.parse(file.path);
-        var torrentStream = Stream.periodic(const Duration(seconds: 2), (int count) => _task?.progress ?? 0.0);
-        _task = TorrentTask.newTask(model, bookDirectory);
-        _task?.start();
-        emit(TorrentDownloading(torrentProgress: torrentStream));
-        findPublicTrackers().listen((event) {
-          for (var evt in event) {
-            _task?.startAnnounceUrl(evt, model.infoHashBuffer);
-          }
-        });
-        for (var element in model.nodes) {
-          _task?.addDHTNode(element);
+      var directory = await getApplicationDocumentsDirectory();
+      directory = Directory('${directory.path}/torrents/${event.book.id}.torrent');
+      final file = await api.downloadTorrentFile(link: event.book.id, pathDirectory: directory.path);
+      final bookDirectory = await _initDirectory(directory, event.book.id.toString());
+      final model = await Torrent.parse(file.path);
+      final torrentStream = Stream.periodic(const Duration(seconds: 2), (_) {
+        return _task?.progress ?? 0.0;
+      });
+      _task = TorrentTask.newTask(model, bookDirectory);
+      _task?.start();
+      emit(TorrentDownloading(torrentProgress: torrentStream));
+      findPublicTrackers().listen((event) {
+        for (var evt in event) {
+          _task?.startAnnounceUrl(evt, model.infoHashBuffer);
         }
       });
+      for (var element in model.nodes) {
+        _task?.addDHTNode(element);
+      }
       _task?.onTaskComplete(() {
         _task?.stop();
         add(FinishTorrent());

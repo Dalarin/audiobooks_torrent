@@ -769,6 +769,26 @@ class S {
       args: [],
     );
   }
+
+  /// `Listen`
+  String get listen {
+    return Intl.message(
+      'Listen',
+      name: 'listen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Download`
+  String get download {
+    return Intl.message(
+      'Download',
+      name: 'download',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

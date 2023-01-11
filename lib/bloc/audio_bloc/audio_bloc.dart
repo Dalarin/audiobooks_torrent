@@ -6,6 +6,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audiotagger/audiotagger.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audiotagger/models/tag.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:just_audio/just_audio.dart';
@@ -32,6 +33,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     on<InitializeAudio>((event, emit) => _initializeAudio(event, emit));
     on<SkipSeconds>((event, emit) => _skipSeconds(event, emit));
   }
+
 
   void _skipSeconds(SkipSeconds event, emit) async {
     if (audioPlayer != null) {

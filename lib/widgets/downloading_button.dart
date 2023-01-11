@@ -162,7 +162,7 @@ class DownloadingButton extends StatelessWidget {
             ),
             const SizedBox(width: 15),
             Text(
-              'Слушать',
+              S.of(context).listen,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onPrimary,
@@ -186,7 +186,7 @@ class DownloadingButton extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              'Скачать',
+              S.of(context).download,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onPrimary,

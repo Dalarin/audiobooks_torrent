@@ -58,8 +58,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _themeSettingsRow(context, theme),
-                    _colorSettings(context, theme),
                     _proxySettings(context, theme),
+                    _colorSettings(context, theme),
                   ],
                 ),
               ),
@@ -80,9 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
       borderRadius: BorderRadius.circular(40),
       child: CircleAvatar(
         backgroundColor: color,
-        child: notifier.color.value == color.value
-            ? const Icon(Icons.check)
-            : null,
+        child: notifier.color.value == color.value ? const Icon(Icons.check) : null,
       ),
     );
   }
@@ -119,8 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showProxySettingsDialog(
-      BuildContext context, SettingsNotifier notifier) {
+  void _showProxySettingsDialog(BuildContext context, SettingsNotifier notifier) {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -211,19 +208,25 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _proxySettings(
-      BuildContext context, SettingsNotifier settingsNotifier) {
+  Widget _proxySettings(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
       onTap: () => _showProxySettingsDialog(context, settingsNotifier),
       title: Text(
         S.of(context).proxySettings,
         style: Theme.of(context).textTheme.titleMedium,
       ),
+      trailing: Switch(
+        value: settingsNotifier.proxy.useProxy,
+        onChanged: (bool value) {
+          settingsNotifier.proxy = settingsNotifier.proxy.copyWith(
+            useProxy: value,
+          );
+        },
+      ),
     );
   }
 
-  Widget _themeSettingsRow(
-      BuildContext context, SettingsNotifier settingsNotifier) {
+  Widget _themeSettingsRow(BuildContext context, SettingsNotifier settingsNotifier) {
     return ListTile(
       title: Text(
         S.of(context).darkTheme,

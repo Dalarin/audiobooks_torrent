@@ -27,6 +27,7 @@ class PageProvider {
   static Future<bool> _checkAuthentication(Dio dio, PageProvider pageProvider) async {
     try {
       Response response = await dio.get('https://rutracker.org/forum/tracker.php');
+      if (response.statusCode! > 500) throw AuthenticationException('Нет соединения с сервером. Попробуйте позже');
       if (response.data.contains('logged-in-username')) {
         pageProvider._authenticated = true;
         return Future.value(true);
@@ -34,6 +35,8 @@ class PageProvider {
       return Future.value(false);
     } on DioError catch (error) {
       if (error.message.contains('HttpException')) {
+        return Future.value(false);
+      } else if (error.message.contains('Connection refused')) {
         return Future.value(false);
       }
       return Future.value(true);
@@ -114,7 +117,7 @@ class PageProvider {
     }
   }
 
-  Future<File> downloadTorrentFile(String link, String pathDirectory) async {
+  Future<File> downloadTorrentFile(int link, String pathDirectory) async {
     if (!_authenticated) {
       throw AuthenticationException('Пользователь не авторизован');
     } else {
@@ -122,7 +125,7 @@ class PageProvider {
       await _dio.download(
         urlPath,
         pathDirectory,
-        queryParameters: {'t': link},
+        queryParameters: {'t': link.toString()},
       );
       return File.fromUri(Uri.parse(pathDirectory));
     }

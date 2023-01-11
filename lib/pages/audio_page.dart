@@ -207,10 +207,10 @@ class ControlButtons extends StatelessWidget {
 
   const ControlButtons(this.book, this.player, this.audioBloc, this.books, {Key? key}) : super(key: key);
 
-  void _selectChaptersDialog(BuildContext context) {
+  void _showSelectChaptersDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
       scrollable: true,
-      title: const Text("Главы"),
+      title: Text(S.of(context).chapters),
       content: SizedBox(
         width: double.maxFinite,
         height: MediaQuery.of(context).size.height * 0.3,
@@ -275,7 +275,17 @@ class ControlButtons extends StatelessWidget {
     );
   }
 
-  Row _audioControlAdditionalButtons(BuildContext context) {
+  void _showTimePicker(BuildContext context) async {
+    final bloc = context.read<AudioBloc>();
+    TimeOfDay? time = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 0, minute: 0),
+    );
+    if (time == null) return;
+    bloc.add(SleepMode(time: time, function: (context) => Navigator.pop(context)));
+  }
+
+  Widget _audioControlAdditionalButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -303,13 +313,13 @@ class ControlButtons extends StatelessWidget {
         ),
         _customIconButton(
           context: context,
-          function: () => _selectChaptersDialog(context),
+          function: () => _showSelectChaptersDialog(context),
           title: S.of(context).chapters,
           icon: const Icon(Icons.list_alt_outlined),
         ),
         _customIconButton(
           context: context,
-          function: () {},
+          function: () => _showTimePicker(context),
           title: S.of(context).timer,
           icon: const Icon(Icons.alarm),
         ),
@@ -406,7 +416,6 @@ class ControlButtons extends StatelessWidget {
 
   void _selectAudioSpeedDialog({
     required BuildContext context,
-    String valueSuffix = '',
     required Stream<double> stream,
     required ValueChanged<double> onChanged,
   }) {
@@ -423,7 +432,7 @@ class ControlButtons extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                      '${snapshot.data?.toStringAsFixed(1)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24.0,

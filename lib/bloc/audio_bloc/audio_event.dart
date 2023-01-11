@@ -18,3 +18,10 @@ class SkipSeconds extends AudioEvent {
 
   const SkipSeconds({required this.seconds});
 }
+
+class SleepMode extends AudioEvent {
+  final TimeOfDay time;
+  final Function(BuildContext) function;
+
+  const SleepMode({required this.time, required this.function});
+}

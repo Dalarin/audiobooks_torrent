@@ -23,7 +23,7 @@ class RutrackerApi {
   /// Example with login and password: jafprrvt:rnvnodrqf6p2@185.199.229.156:7492
   ///
   /// The [cookieDirectory] is the directory for storing cookies files
-  Future<List<Object>> create({required String proxyUrl, required String cookieDirectory}) async {
+  Future<List<Object>> create({String? proxyUrl, required String cookieDirectory}) async {
     _dio.useProxy(proxyUrl);
     _dio.interceptors.add(CookieManager(PersistCookieJar(storage: FileStorage(cookieDirectory))));
     _dio.options = BaseOptions(
@@ -65,7 +65,7 @@ class RutrackerApi {
     return _parser.parseQueryResponse(document);
   }
 
-  Future<File> downloadTorrentFile({required String link, required String pathDirectory}) {
+  Future<File> downloadTorrentFile({required int link, required String pathDirectory}) {
     return _pageProvider.downloadTorrentFile(link, pathDirectory);
   }
 }

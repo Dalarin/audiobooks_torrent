@@ -71,5 +71,7 @@
   "exit": "Exit",
   "exitDialogText": "Do you want to save the download progress? You can continue downloading later",
   "no": "No",
-  "appTitle": "Аудиокниги - Торрент"
+  "appTitle": "Audiobooks - Torrent",
+  "listen": "Listen",
+  "download": "Download"
 }

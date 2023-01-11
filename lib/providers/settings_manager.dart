@@ -12,6 +12,7 @@ class   SettingsNotifier with ChangeNotifier {
   late Sort _sort;
   late List<Filter> _filter;
 
+
   static ColorScheme _defaultColorScheme = ColorScheme.fromSeed(seedColor: Colors.green);
 
   static final SettingsNotifier standart = SettingsNotifier.from(
